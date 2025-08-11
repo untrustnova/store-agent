@@ -29,7 +29,7 @@ class TransactionController extends Controller
         $request->validate([
             'type' => 'required|in:bus,ewallet,internet,game,token,pulsa',
             'amount' => 'required|numeric|min:1000',
-            'payment_method' => 'required|in:bank_transfer,virtual_account,ewallet,qris',
+            'payment_method' => 'required|in:bank_transfer,virtual_account,ewallet,qris,cash',
             'details' => 'required|array',
         ]);
 
@@ -46,7 +46,9 @@ class TransactionController extends Controller
             'total_amount' => $totalAmount,
             'details' => $request->details,
             'payment_method' => $request->payment_method,
-            'expired_at' => Carbon::now()->addDay(),
+            'expired_at' => $request->payment_method === 'cash' ? null : Carbon::now()->addDay(),
+            'status' => $request->payment_method === 'cash' ? 'pending' : 'pending',
+            'payment_status' => $request->payment_method === 'cash' ? 'pending' : 'pending',
         ]);
 
         // Prepare Midtrans parameters

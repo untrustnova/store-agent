@@ -5,6 +5,7 @@ use App\Http\Controllers\API\Admin\AdminResourceController;
 use App\Http\Controllers\API\Auth\AuthController;
 use App\Http\Controllers\API\Transaction\ServiceController;
 use App\Http\Controllers\API\Transaction\TransactionController;
+use App\Http\Controllers\API\Transaction\CashPaymentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -34,6 +35,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
         Route::get('/{transaction}/status', [TransactionController::class, 'checkStatus'])->name('transactions.check-status');
         Route::get('/{transaction}/check-status', [TransactionController::class, 'checkPaymentStatus'])->name('transactions.check-payment-status');
+
+        // Cash Payment Routes
+        Route::post('/{transaction}/cash/process', [CashPaymentController::class, 'process'])->name('transactions.cash.process');
+        Route::post('/{transaction}/cash/confirm', [CashPaymentController::class, 'confirm'])->middleware('admin')->name('transactions.cash.confirm');
     });
 
     // Service Routes

@@ -48,6 +48,10 @@ return [
         'qris' => [
             'fee_percentage' => 0.007, // 0.7%
             'name' => 'QRIS'
+        ],
+        'cash' => [
+            'fee' => 0,
+            'name' => 'Cash'
         ]
     ],
 
