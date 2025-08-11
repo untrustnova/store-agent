@@ -1,0 +1,345 @@
+{
+	"info": {
+		"name": "AZ Store API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/auth/login",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": {
+								"email": "agent@example.com",
+								"password": "password123",
+								"device_name": "Postman"
+							}
+						}
+					}
+				},
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/auth/register",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": {
+								"name": "Test Agent",
+								"email": "agent@example.com",
+								"password": "password123",
+								"password_confirmation": "password123",
+								"phone_number": "08123456789",
+								"address": "Jl. Test No. 123"
+							}
+						}
+					}
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/auth/me",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						]
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/auth/logout",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Transactions",
+			"item": [
+				{
+					"name": "Create Transaction",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/transactions",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": {
+								"type": "pulsa",
+								"amount": 50000,
+								"payment_method": "bank_transfer",
+								"details": {
+									"phone_number": "08123456789",
+									"provider": "telkomsel"
+								}
+							}
+						}
+					}
+				},
+				{
+					"name": "Transaction History",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/transactions/history",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						]
+					}
+				},
+				{
+					"name": "Check Payment Status",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/transactions/{{transaction_id}}/check-status",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						]
+					}
+				},
+				{
+					"name": "Midtrans Notification (Webhook)",
+					"description": "Endpoint untuk menerima notifikasi dari Midtrans setelah pembayaran. Format payload mengikuti dokumentasi Midtrans.",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/transactions/notification",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": {
+								"transaction_time": "2025-08-11 11:11:11",
+								"transaction_status": "capture",
+								"transaction_id": "057f9b13-7419-4e1e-82c4-8d407f9f981f",
+								"status_message": "midtrans payment notification",
+								"status_code": "200",
+								"signature_key": "fe5f292b47432529d96294214994ee54c1247d6c77083fa2aec180c5d6c86d36fc4fb9bb835a96051f7827055b7b77534bd9f9ab5a8288c26a95607546924ce8",
+								"payment_type": "credit_card",
+								"order_id": "TRX-XXXXXXXX",
+								"merchant_id": "G812785002",
+								"gross_amount": "50000.00",
+								"fraud_status": "accept",
+								"currency": "IDR"
+							}
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Services",
+			"item": [
+				{
+					"name": "Get Cities",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/services/cities",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						]
+					}
+				},
+				{
+					"name": "Get E-Wallets",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/services/e-wallets",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						]
+					}
+				},
+				{
+					"name": "Validate Bus Route",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/services/validate-bus-route",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": {
+								"from_city_id": 1,
+								"to_city_id": 2,
+								"date": "2025-08-12"
+							}
+						}
+					}
+				},
+				{
+					"name": "Validate E-Wallet Number",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/services/validate-ewallet-number",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": {
+								"ewallet_code": "OVO",
+								"phone_number": "08123456789"
+							}
+						}
+					}
+				},
+				{
+					"name": "Validate Phone Number",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/services/validate-phone-number",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": {
+								"phone_number": "08123456789",
+								"provider": "telkomsel"
+							}
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Dashboard",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/admin/dashboard",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						]
+					}
+				},
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/admin/users",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						]
+					}
+				},
+				{
+					"name": "Toggle User Status",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/admin/users/{{user_id}}/toggle-status",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						]
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"description": "Local development URL"
+		},
+		{
+			"key": "token",
+			"value": "YOUR_ACCESS_TOKEN",
+			"description": "Bearer token dari endpoint login"
+		},
+		{
+			"key": "transaction_id",
+			"value": "TRX-XXXXXXXX",
+			"description": "ID transaksi dari response create transaction"
+		},
+		{
+			"key": "user_id",
+			"value": "1",
+			"description": "ID user untuk endpoint admin"
+		}
+	]
+}
