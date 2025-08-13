@@ -83,7 +83,7 @@ class TransactionController extends Controller
             ],
         ];
 
-        // Get snap token from Midtrans
+        // Ambil Snap Token Dari Midtrans
         $result = $this->midtransService->createTransaction($params);
 
         if ($result['status'] === 'error') {
@@ -215,7 +215,7 @@ class TransactionController extends Controller
 
             if ($paymentStatus === 'capture' || $paymentStatus === 'settlement') {
                 $transaction->payment_status = 'paid';
-                $transaction->status = 'complete';
+                $transaction->status = 'completed';
                 $transaction->payment_reference = $notificationBody['transaction_id'];
                 Log::info('✅ Payment successful', [
                     'reference_id' => $transaction->reference_id,

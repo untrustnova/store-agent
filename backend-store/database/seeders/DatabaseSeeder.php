@@ -14,17 +14,19 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create admin user
-        User::create([
-            'name' => 'Super Admin',
-            'email' => 'admin@admin.com',
-            'password' => bcrypt('password123'),
-            'role' => 'admin',
-            'is_active' => true,
-            'phone_number' => '081234567890',
-            'address' => 'Jl. Admin No. 1',
-            'balance' => 0
-        ]);
+        // Create admin user if not exists
+        if (!User::where('email', 'admin@admin.com')->exists()) {
+            User::create([
+                'name' => 'Super Admin',
+                'email' => 'admin@admin.com',
+                'password' => bcrypt('password123'),
+                'role' => 'admin',
+                'is_active' => true,
+                'phone_number' => '081234567890',
+                'address' => 'Jl. Admin No. 1',
+                'balance' => 0
+            ]);
+        }
 
         // Create some agent users
         User::factory(5)->create();

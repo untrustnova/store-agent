@@ -84,7 +84,7 @@
 			"name": "Transactions",
 			"item": [
 				{
-					"name": "Create Transaction",
+					"name": "Create Transaction - Pulsa",
 					"request": {
 						"method": "POST",
 						"url": "{{base_url}}/api/transactions",
@@ -107,6 +107,407 @@
 								"details": {
 									"phone_number": "08123456789",
 									"provider": "telkomsel"
+								}
+							}
+						}
+					}
+				},
+				{
+					"name": "Create Transaction - Bus",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/transactions",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": {
+								"type": "bus",
+								"amount": 150000,
+								"payment_method": "bank_transfer",
+								"details": {
+									"from_city_id": 1,
+									"to_city_id": 2,
+									"date": "2025-08-15",
+									"passenger_name": "John Doe",
+									"passenger_phone": "08123456789",
+									"seat_number": "A1"
+								}
+							}
+						}
+					}
+				},
+				{
+					"name": "Create Transaction - E-Wallet",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/transactions",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": {
+								"type": "ewallet",
+								"amount": 100000,
+								"payment_method": "bank_transfer",
+								"details": {
+									"phone_number": "08123456789",
+									"ewallet_code": "OVO"
+								}
+							}
+						}
+					}
+				},
+				{
+					"name": "Create Transaction - Internet",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/transactions",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": {
+								"type": "internet",
+								"amount": 200000,
+								"payment_method": "bank_transfer",
+								"details": {
+									"customer_number": "123456789",
+									"package_name": "Home Internet 50Mbps",
+									"provider": "IndiHome"
+								}
+							}
+						}
+					}
+				},
+				{
+					"name": "Create Transaction - Game (Genshin Impact)",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/transactions",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": {
+								"type": "game",
+								"amount": 159000,
+								"payment_method": "bank_transfer",
+								"details": {
+									"game_id": "genshin",
+									"uid": "800000000",
+									"server": "asia",
+									"product": "Genesis Crystal 980+110"
+								}
+							}
+						}
+					}
+				},
+				{
+					"name": "Create Transaction - Game (Honkai: Star Rail)",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/transactions",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": {
+								"type": "game",
+								"amount": 159000,
+								"payment_method": "bank_transfer",
+								"details": {
+									"game_id": "starrail",
+									"uid": "100000000",
+									"server": "asia",
+									"product": "Oneiric Shard 980+110"
+								}
+							}
+						}
+					}
+				},
+				{
+					"name": "Create Transaction - Game (Zenless Zone Zero)",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/transactions",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": {
+								"type": "game",
+								"amount": 159000,
+								"payment_method": "bank_transfer",
+								"details": {
+									"game_id": "zzz",
+									"uid": "900000000",
+									"server": "asia",
+									"product": "Premium Currency 980+110"
+								}
+							}
+						}
+					}
+				},
+				{
+					"name": "Create Transaction - Game (Arknights)",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/transactions",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": {
+								"type": "game",
+								"amount": 149000,
+								"payment_method": "bank_transfer",
+								"details": {
+									"game_id": "arknights",
+									"uid": "1234567",
+									"server": "global",
+									"product": "Originium 90+12"
+								}
+							}
+						}
+					}
+				},
+				{
+					"name": "Create Transaction - Game (Blue Archive)",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/transactions",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": {
+								"type": "game",
+								"amount": 149000,
+								"payment_method": "bank_transfer",
+								"details": {
+									"game_id": "bluearchive",
+									"account_id": "12345678",
+									"server": "global",
+									"product": "Pyroxene 1200+300"
+								}
+							}
+						}
+					}
+				},
+				{
+					"name": "Create Transaction - Game (Guardian Tales)",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/transactions",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": {
+								"type": "game",
+								"amount": 149000,
+								"payment_method": "bank_transfer",
+								"details": {
+									"game_id": "guardiantales",
+									"user_id": "12345678",
+									"server": "asia",
+									"product": "Gem 1000+100"
+								}
+							}
+						}
+					}
+				},
+				{
+					"name": "Create Transaction - Game (Uma Musume)",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/transactions",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": {
+								"type": "game",
+								"amount": 144000,
+								"payment_method": "bank_transfer",
+								"details": {
+									"game_id": "umamusume",
+									"user_id": "123456789",
+									"server": "japan",
+									"product": "Paid Jewel 1000+200"
+								}
+							}
+						}
+					}
+				},
+				{
+					"name": "Create Transaction - Game (FGO)",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/transactions",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": {
+								"type": "game",
+								"amount": 159000,
+								"payment_method": "bank_transfer",
+								"details": {
+									"game_id": "fgo",
+									"user_id": "123456789",
+									"server": "japan",
+									"product": "Saint Quartz 67+33"
+								}
+							}
+						}
+					}
+				},
+				{
+					"name": "Create Transaction - Game (Wuthering Waves)",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/transactions",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": {
+								"type": "game",
+								"amount": 149000,
+								"payment_method": "bank_transfer",
+								"details": {
+									"game_id": "wutheringwaves",
+									"uid": "123456789",
+									"server": "asia",
+									"product": "Premium Currency 980+110"
+								}
+							}
+						}
+					}
+				},
+				{
+					"name": "Create Transaction - Token PLN",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/transactions",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": {
+								"type": "token",
+								"amount": 50000,
+								"payment_method": "bank_transfer",
+								"details": {
+									"meter_number": "123456789012",
+									"customer_name": "John Doe",
+									"power_rate": "R1/900VA"
 								}
 							}
 						}
