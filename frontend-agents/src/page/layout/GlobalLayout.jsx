@@ -6,7 +6,7 @@ import { Toaster } from "sonner"
 export default function GlobalLayout({ children }) {
   return <>
     <AuthenticationContext>
-      <Toaster />
+      <Toaster richColors/>
       <Header />
       {children? children:<Outlet />}
     </AuthenticationContext>

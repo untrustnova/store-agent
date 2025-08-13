@@ -9,6 +9,7 @@ import HandleingValidateError from "../lib/handle-validate"
 import RequestAPIApp from "../lib/request"
 import { toast } from "sonner"
 import HeadOperation from "../components/content/HeadOperation"
+import { useAuthorization } from "../components/content/Authentication"
 
 const createRegisterValidate = new validate.Form("register")
 createRegisterValidate.append({
@@ -16,7 +17,7 @@ createRegisterValidate.append({
     .require().min(4).max(255),
   email: validate.string("Email")
     .require().isEmail().min(2),
-  phone: validate.number("Nomer Telpon")
+  phone_number: validate.number("Nomer Telpon")
     .require().min(3),
   address: validate.string("Alamat")
     .require().min(2),
@@ -27,6 +28,7 @@ createRegisterValidate.append({
 })
 
 export default function Register() {
+  const author = useAuthorization()
   const [inputuseMap, setinputuseMap] = useState(false)
   const [showToMap, setShowToMap] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -51,7 +53,7 @@ export default function Register() {
     const structureForm = {
       name: dataForm.name,
       email: dataForm.email,
-      phone: Number(dataForm.phone),
+      phone_number: Number(dataForm.phone_number),
       address: dataForm.address,
       password: dataForm.password,
       password_confirmation: dataForm.password_confirmation,
@@ -67,7 +69,7 @@ export default function Register() {
       return;
     }
     // Validate Phone Number List
-    const phoneStr = String(structureForm.phone)
+    const phoneStr = String(structureForm.phone_number)
     if(!phoneStr.startsWith("62")) {
       toast.error("Nomer telpon harus diawali 62... dan seterusnya")
       return;
@@ -88,18 +90,21 @@ export default function Register() {
       method: "POST",
       data: {
         ...structureForm,
-        phone: phoneStr
+        phone_number: phoneStr
       },
       showErrorOnToast: true,
     })
-    if(!!requestdata.data?.user) {
+    console.log(requestdata)
+    if(!!requestdata?.data?.data?.user) {
       toast.success("Berhasil terdaftar!")
       return; // Success Register
     }
     // Handle Error Client (Automaticly Send By RequestAPIApp)
     if(requestdata.isClient) return;
     // Handle Error Response
-    toast.error("Error disisi server!")
+    toast.error("Error disisi server!", {
+      description: String(requestdata.data||"")
+    })
   }
 
   return <>
@@ -140,7 +145,7 @@ export default function Register() {
           <Input
             className="text-left"
             type="number"
-            name="phone"
+            name="phone_number"
             icon={<PhoneIcon size={18}/>}
             placeholder="Telepon (628....)"
           />

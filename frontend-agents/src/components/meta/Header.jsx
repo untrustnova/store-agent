@@ -141,7 +141,12 @@ export default function Header() {
 
   async function GetProfileUser() {
     const pictureImg = CanvasGenerateImagePicture(400, 400)
-    const request = await RequestAPIApp("/auth/profile", { showErrorOnToast: false })
+    // New Logic
+    if(!author.getToken()) {
+      setProfile({ data: { isLogin: false }, loading: false })
+      return;
+    }
+    const request = await RequestAPIApp("/auth/me", { showErrorOnToast: false })
     if(request.data?.user) {
       setProfile({
         data: {

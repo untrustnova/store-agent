@@ -2,7 +2,12 @@ import axios from "axios"
 import authOperation from "../components/content/_AuthOperation"
 import { toast } from "sonner"
 
-const baseURL = "http://localhost:8080/api"
+// Apply Auto-Update Authentication
+const applyUpdateUs = [
+  "auth/me", "/auth/me"
+]
+const baseURL = "http://127.0.0.1:8000/api"
+// const baseURL = "https://92997ed48cdf.ngrok-free.app/api"
 
 async function RequestAPIApp(url, { useAuth = true, showErrorOnToast = true, ...options } = {}) {
   try {
@@ -19,6 +24,10 @@ async function RequestAPIApp(url, { useAuth = true, showErrorOnToast = true, ...
       },
       url: url
     })
+    if(applyUpdateUs.includes(url)) {
+      // Always Update
+      localStorage.setItem(authOperation.saveuserkey, JSON.stringify(axiosRequest.data.data))
+    }
     return {
       ...axiosRequest,
       isJson: String(axiosRequest?.headers["content-type"]||"")?.match("application/json")
@@ -29,7 +38,8 @@ async function RequestAPIApp(url, { useAuth = true, showErrorOnToast = true, ...
       return {
         isError: true,
         ...responses,
-        isJson: String(responses?.headers["content-type"]||"")?.match("application/json")
+        isJson: String(responses?.headers["content-type"]||"")?.match("application/json"),
+        message: responses.data?.message||String(responses.data).slice(0, 189)
       }
     }
     if(showErrorOnToast) {

@@ -9,6 +9,7 @@ import RequestAPIApp from "../lib/request"
 import { toast } from "sonner"
 import { useAuthorization } from "../components/content/Authentication"
 import HeadOperation from "../components/content/HeadOperation"
+import { useNavigate } from "react-router"
 
 const createLoginValidate = new validate.Form("register")
 createLoginValidate.append({
@@ -19,6 +20,7 @@ createLoginValidate.append({
 })
 
 export default function Login() {
+  const navigate = useNavigate()
   const author = useAuthorization()
   const [showPassword, setShowPassword] = useState(false)
   const [messageErr, setMessageErr] = useState({})
@@ -27,9 +29,12 @@ export default function Login() {
     e.preventDefault()
     const forms = new FormData(e.target)
     const dataForm = Object.fromEntries(forms)
+    const useDevice = author.GetDeviceID()
+    console.log("Device:", useDevice)
     const structureForm = {
       email: dataForm.email,
       password: dataForm.password,
+      device_name: useDevice
     }
     // Validate Form
     const isvalid = createLoginValidate.validate(structureForm)
@@ -48,14 +53,14 @@ export default function Login() {
       data: structureForm,
       showErrorOnToast: true,
     })
-    if(!!requestdata.data?.user && !!requestdata.data?.token) {
-      author.setAuth(requestdata.data.token, requestdata.data.user)
+    if(!!requestdata.data?.data?.user && !!requestdata.data?.data?.token) {
+      author.setAuth(requestdata.data.data.token, requestdata.data.data.user)
+      navigate("/account")
+      toast.success("Dapat Login!")
       return; // Success Login
     }
-    // Handle Error Client (Automaticly Send By RequestAPIApp)
-    if(requestdata.isClient) return;
     // Handle Error Response
-    toast.error("Error disisi server!")
+    toast.error("Error disisi server!", { description: requestdata.message })
   }
   return <>
     <HeadOperation

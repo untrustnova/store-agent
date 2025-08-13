@@ -22,21 +22,38 @@ createRoot(document.getElementById("root")).render(
       <Route element={<GlobalLayout />}>
         {/* Global */}
         <Route path="/" element={<Homepage />} />
-        <Route element={<MustUseAuth havelogin={{ fn: () => {
-          toast.success("Kamu sudah masuk, tidak perlu masuk/register kembali")
-        }, redirect: "/account" }}/>}>
-          <Route path="/auth/register" element={<Register />} />
-          <Route path="/auth/login" element={<Login />} />
+        {/* Tidak Memelukan Authentikasi - Memiliki Aksi Authentikasi */}
+        <Route element={
+          <MustUseAuth
+            havelogin={{
+              fn: () => { // Callback Have Login Token!
+                toast.success("Kamu sudah masuk, tidak perlu masuk/register kembali")
+              },
+              redirect: "/account" // Redirect
+            }}
+          />
+        }>
+          <Route path="/auth/login" element={<Login />} />        {/* Auth - Login */}
+          <Route path="/auth/register" element={<Register />} />  {/* Auth - Register */}
         </Route>
         {/* Perlu Authentikasi */}
         <Route element={<MustUseAuth />}>
+          {/* Bagian Pembayaran */}
+          <Route path="/transaction/pulsa" element={<></>} />    {/* Transaksi Pulsa >> postman_collection.json (87) */}
+          <Route path="/transaction/bus" element={<></>} />      {/* Transaksi Bus >> postman_collection.json (119) */}
+          <Route path="/transaction/e-wallet" element={<></>} /> {/* Transaksi E-Wallet >> postman_collection.json (152) */}
+          <Route path="/transaction/internet" element={<></>} /> {/* Transaksi Internet >> postman_collection.json (181) */}
+          <Route path="/transaction/game" element={<></>} />     {/* Transaksi Game >> postman_collection.json (211,242,273,304,335,366,397,428,459) */}
+          <Route path="/transaction/pln" element={<></>} />      {/* Transaksi PLN >> postman_collection.json (490) */}
           {/* Bagian Akun */}
           <Route element={<AccountSidebar />}>
-            <Route path="/account" element={<ProfileUser />} />
-            <Route path="/account/update-profile" element={<ProfileUser />} />
-            <Route path="/account/change-password" element={<ProfileUser />} />
-            <Route path="/account/transaction-history" element={<ProfileUser />} />
+            <Route path="/account" element={<ProfileUser />} />                          {/* Account - Profile Users */}
+            <Route path="/account/transaction-history" element={<ProfileUser />} />      {/* Account - History Transaction >> postman_collection.json (520) */}
+            <Route path="/account/transaction-status/:slug" element={<ProfileUser />} /> {/* Account - Status Transaction >> postman_collection.json (533) */}
           </Route>
+          {/* Bagian Admin */}
+          <Route path="/admin" element={<></>} />
+          <Route path="/admin/users" element={<></>} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Route>

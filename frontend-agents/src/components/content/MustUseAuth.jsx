@@ -15,7 +15,9 @@ export default function MustUseAuth({ children, havelogin = {}, havnonlogin = {}
     const getLocalUser = author.getUser()
     if(!getTokenSave || !getLocalUser || typeof getLocalUser !== "object" || !getLocalUser?.name) {
       if(!!getLocalUser || !!getTokenSave) {
-        author.RemoveAuth() // Remove Auth Corrupted
+        if(getTokenSave) {
+          author.RemoveAuth() // Remove Auth Corrupted
+        }
       }
       if(havnonlogin && typeof havnonlogin === "object") {
         if(havnonlogin.fn && typeof havnonlogin.fn === "function") {

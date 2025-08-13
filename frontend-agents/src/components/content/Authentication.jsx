@@ -17,7 +17,17 @@ function ParseJsonIfCanParser(jsonstr) {
 export default function AuthenticationContext({ children }) {
   const navigate = useNavigate()
   const [authisLogin, setauthisLogin] = useState(false)
-
+ 
+  function GetDeviceID() {
+    const storageTy = localStorage.getItem("use-id")
+    const cryptoKey = crypto.randomUUID()
+    const generate = `${window?.navigator?.userAgentData?.platform||"Unknowing"} - ${cryptoKey}`
+    if(!!storageTy) {
+      return storageTy
+    }
+    localStorage.setItem("use-id", generate)
+    return generate
+  }
   function GetAuth() {
     const getUser = localStorage.getItem(authOperation.saveuserkey)||"{}"
     return {
@@ -59,6 +69,7 @@ export default function AuthenticationContext({ children }) {
     GetAuth,
     SetAuth,
     RemoveAuth,
+    GetDeviceID,
     authisLogin
   }}>
     {children}
@@ -69,8 +80,11 @@ export function useAuthorization() {
   const authuse = useContext(CreateAuthContext)
   return {
     isLogin: authuse.authisLogin,
+    GetDeviceID: () => {
+      return authuse.GetDeviceID()
+    },
     getToken: () => {
-      return String(authuse.GetAuth().token)
+      return String(authuse.GetAuth()?.token||"")
     },
     getUser: () => {
       return authuse.GetAuth().user

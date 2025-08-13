@@ -19,22 +19,22 @@ const listLinkAccount = [
       },
     ]
   },
-  {
-    category: "Perubahan - Danger Zone",
-    redZone: true,
-    list: [
-      {
-        icon: <PenIcon />,
-        label: "Ubah Profil",
-        path: "/account/update-profile"
-      },
-      {
-        icon: <KeySquare />,
-        label: "Ubah Kata Sandi",
-        path: "/account/change-password"
-      },
-    ]
-  },
+  // {
+  //   category: "Perubahan - Danger Zone",
+  //   redZone: true,
+  //   list: [
+  //     {
+  //       icon: <PenIcon />,
+  //       label: "Ubah Profil",
+  //       path: "/account/update-profile"
+  //     },
+  //     {
+  //       icon: <KeySquare />,
+  //       label: "Ubah Kata Sandi",
+  //       path: "/account/change-password"
+  //     },
+  //   ]
+  // },
 ]
 
 export default function AccountSidebar({ children }) {
