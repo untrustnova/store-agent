@@ -44,11 +44,11 @@ const dataNavigateWithLogin =  {
   ]
 }
 const dataNavigate = [
-  {
-    label: "Layanan",
-    showLabel: true,
-    links: globalPathOrigin
-  },
+  // {
+  //   label: "Layanan",
+  //   showLabel: true,
+  //   links: globalPathOrigin
+  // },
   // {
   //   label: "Layanan",
   //   showLabel: true,
@@ -332,7 +332,7 @@ export default function Header() {
         </Link>:<div className="w-full h-[80px] flex justify-center items-center text-neutral-500 italic">
           <p>Loading...</p>
         </div>}
-        {(!!(profileUser?.data?.isLogin)? [dataNavigateWithLogin,...dataNavigate]:[dataNavigateNonLogin,...dataNavigate]).map((groupLink, i) => (
+        {(!!(profileUser?.data?.isLogin)? [dataNavigateWithLogin,...globalPathOrigin,...dataNavigate]:[dataNavigateNonLogin,...globalPathOrigin,...dataNavigate]).map((groupLink, i) => (
           <Header_GroupLink key={i} links={groupLink.links} label={groupLink.label} showLabel={groupLink.showLabel} closeSection={CloseAllMenuSection}/>
         ))}
         <div className="h-[30px]"></div>

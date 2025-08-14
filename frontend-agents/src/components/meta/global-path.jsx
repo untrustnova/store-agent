@@ -8,30 +8,43 @@ const globalPathOrigin = [
         icon: <SmartphoneIcon size={18} />,
         label: "Pulsa",
         text: "Isi ulang pulsa",
+        topRecommend: true,
+        bgColor: "#892eff",
+        fnColor: "white",
         path: "/transaction/pulsa"
       },
       {
         icon: <BoxesIcon size={18} />,
         label: "E-Wallet",
         text: "Top up e-wallet",
+        topRecommend: true,
+        bgColor: "#45a8ff",
+        fnColor: "white",
         path: "/transaction/e-wallet"
       },
       {
         icon: <GamepadIcon size={18} />,
         label: "Game",
         text: "Top up game",
+        topRecommend: true,
+        bgColor: "#2e69ff",
+        fnColor: "white",
         path: "/transaction/game"
       },
       {
         icon: <GlobeIcon size={18} />,
         label: "Bus",
         text: "Tiket bus",
+        bgColor: "#ff962e",
+        fnColor: "white",
         path: "/transaction/bus"
       },
       {
         icon: <ZapIcon size={18} />,
         label: "Token Listrik",
         text: "Beli token listrik",
+        bgColor: "#892eff",
+        fnColor: "white",
         path: "/transaction/token-listrik"
       }
       // {
