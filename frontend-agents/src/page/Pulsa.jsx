@@ -22,6 +22,9 @@ const PULSA_OPTIONS = [
   { amount: 50000, label: "50,000" },
   { amount: 100000, label: "100,000" },
 ]
+const INTERNET_OPTIONS = [
+  {  }
+]
 
 export default function PulsaPage() {
   const [messageErr, setMessageErr] = useState({})
@@ -38,27 +41,35 @@ export default function PulsaPage() {
 
     // Validate form
     const isValid = createPulsaValidate.validate(data)
+    console.log(isValid)
     if (isValid) {
       const parseErrorValid = HandleingValidateError(isValid)
       setMessageErr(parseErrorValid.context)
       toast.error("Ada beberapa yang perlu diubah", {
-        description: `Ada ${Object.keys(parseErrorValid.context).length} field yang perlu diperbaiki`
+        description: parseErrorValid?.list[0]?.msg||"Unknowing"
+        // description: `Ada ${Object.keys(parseErrorValid.context).length} field yang perlu diperbaiki`
       })
       return
     }
     setMessageErr({})
 
     try {
-      const response = await RequestAPIApp("/transaction/topup/pulsa", {
+      const response = await RequestAPIApp("/transactions", {
         method: "POST",
         headers: auth.headers(),
         data: {
+          type: "pulsa",
           phone: data.phone,
-          amount: data.amount
+          amount: data.amount,
+          payment_method: "bank_transfer",
+          details: {
+						phone_number: data.phone,
+						provider: "telkomsel"
+					}
         }
       })
 
-      if (response.data?.data?.snap_token) {
+      if (response.data.data.snap_token) {
         window.snap.pay(response.data.data.snap_token, {
           onSuccess: function(result) {
             toast.success("Pembayaran berhasil!")
@@ -121,9 +132,11 @@ export default function PulsaPage() {
           )}
         </div>
 
-        <Button type="submit" className="w-full">
-          <span>Beli Pulsa</span>
-          <ArrowRight className="w-5 h-5 ml-2" />
+        <Button type="submit" className="w-full font-semibold">
+          <div className="flex items-center py-1">
+            <span>Beli Pulsa</span>
+            <ArrowRight className="w-5 h-5 ml-2" />
+          </div>
         </Button>
       </form>
     </div>

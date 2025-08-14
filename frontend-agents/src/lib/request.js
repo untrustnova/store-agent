@@ -7,7 +7,8 @@ const applyUpdateUs = [
   "auth/me", "/auth/me"
 ]
 // const baseURL = "http://127.0.0.1:8000/api"
-const baseURL = "https://bd8001f04196.ngrok-free.app/api"
+// const baseURL = "https://bd8001f04196.ngrok-free.app/api"
+const baseURL = "http://127.0.0.1:8000/api"
 
 async function RequestAPIApp(url, { useAuth = true, showErrorOnToast = true, ...options } = {}) {
   try {

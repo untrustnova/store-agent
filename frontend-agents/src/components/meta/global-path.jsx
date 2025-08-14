@@ -1,60 +1,90 @@
-import { BusIcon, ChartAreaIcon, CreditCardIcon, GamepadIcon, GlobeIcon, MapPinIcon, PercentIcon, PhoneIcon, ReceiptIcon, SmartphoneIcon, WalletIcon, ZapIcon } from "lucide-react"
+import { BoxesIcon, BusIcon, ChartAreaIcon, CreditCardIcon, GamepadIcon, GlobeIcon, MapPinIcon, PercentIcon, PhoneIcon, ReceiptIcon, SmartphoneIcon, WalletIcon, ZapIcon } from "lucide-react"
 
 const globalPathOrigin = [
   {
     label: "Transaksi - Pesan / Top Up",
     links: [
       {
-        icon: <SmartphoneIcon />,
-        label: "Pesan Pulsa",
-        text: "Pesan tiket bus mudah dan cepat",
-        path: "/transaction/bus",
-        topRecommend: true,
-        bgColor: "#892eff",
-        fnColor: "white",
+        icon: <SmartphoneIcon size={18} />,
+        label: "Pulsa",
+        text: "Isi ulang pulsa",
+        path: "/transaction/pulsa"
       },
       {
-        icon: <BusIcon />,
-        label: "Pesan Bus",
-        text: "Pesan tiket bus mudah dan cepat",
-        path: "/transaction/bus",
-        bgColor: "#45a8ff",
-        fnColor: "white",
+        icon: <BoxesIcon size={18} />,
+        label: "E-Wallet",
+        text: "Top up e-wallet",
+        path: "/transaction/e-wallet"
       },
       {
-        icon: <WalletIcon />,
-        label: "Top Up E-wallet",
-        text: "Pesan tiket bus mudah dan cepat",
-        path: "/transaction/e-wallet",
-        topRecommend: true,
-        bgColor: "#2e69ff",
-        fnColor: "white",
+        icon: <GamepadIcon size={18} />,
+        label: "Game",
+        text: "Top up game",
+        path: "/transaction/game"
       },
       {
-        icon: <GlobeIcon />,
-        label: "Top Up Internet",
-        text: "Pesan tiket bus mudah dan cepat",
-        path: "/transaction/internet",
-        bgColor: "#24cbd1",
-        fnColor: "white",
+        icon: <GlobeIcon size={18} />,
+        label: "Bus",
+        text: "Tiket bus",
+        path: "/transaction/bus"
       },
       {
-        icon: <GamepadIcon />,
-        label: "Top Up Game",
-        text: "Pesan tiket bus mudah dan cepat",
-        path: "/transaction/game",
-        topRecommend: true,
-        bgColor: "#ff962e",
-        fnColor: "white",
-      },
-      {
-        icon: <ZapIcon />,
-        label: "Pesan Token Listrik (PLN)",
-        text: "Pesan tiket bus mudah dan cepat",
-        path: "/transaction/pln",
-        bgColor: "#892eff",
-        fnColor: "white",
-      },
+        icon: <ZapIcon size={18} />,
+        label: "Token Listrik",
+        text: "Beli token listrik",
+        path: "/transaction/token-listrik"
+      }
+      // {
+      //   icon: <SmartphoneIcon />,
+      //   label: "Pesan Pulsa",
+      //   text: "Pesan tiket bus mudah dan cepat",
+      //   path: "/transaction/bus",
+      //   topRecommend: true,
+      //   bgColor: "#892eff",
+      //   fnColor: "white",
+      // },
+      // {
+      //   icon: <BusIcon />,
+      //   label: "Pesan Bus",
+      //   text: "Pesan tiket bus mudah dan cepat",
+      //   path: "/transaction/bus",
+      //   bgColor: "#45a8ff",
+      //   fnColor: "white",
+      // },
+      // {
+      //   icon: <WalletIcon />,
+      //   label: "Top Up E-wallet",
+      //   text: "Pesan tiket bus mudah dan cepat",
+      //   path: "/transaction/e-wallet",
+      //   topRecommend: true,
+      //   bgColor: "#2e69ff",
+      //   fnColor: "white",
+      // },
+      // {
+      //   icon: <GlobeIcon />,
+      //   label: "Top Up Internet",
+      //   text: "Pesan tiket bus mudah dan cepat",
+      //   path: "/transaction/internet",
+      //   bgColor: "#24cbd1",
+      //   fnColor: "white",
+      // },
+      // {
+      //   icon: <GamepadIcon />,
+      //   label: "Top Up Game",
+      //   text: "Pesan tiket bus mudah dan cepat",
+      //   path: "/transaction/game",
+      //   topRecommend: true,
+      //   bgColor: "#ff962e",
+      //   fnColor: "white",
+      // },
+      // {
+      //   icon: <ZapIcon />,
+      //   label: "Pesan Token Listrik (PLN)",
+      //   text: "Pesan tiket bus mudah dan cepat",
+      //   path: "/transaction/pln",
+      //   bgColor: "#892eff",
+      //   fnColor: "white",
+      // },
     ]
   },
   // {
