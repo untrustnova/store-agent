@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { useAuthorization } from "./Authentication"
-import { Outlet, useNavigate } from "react-router"
+import { Outlet, useNavigate } from "react-router-dom"
 
 /**
  * Must Use Auth To Visit!

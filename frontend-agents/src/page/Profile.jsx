@@ -44,7 +44,7 @@ export default function ProfileUser() {
 
   return <>
     <HeadOperation
-      title="Az Store - Profile Akun"
+      title="AZStore - Profile Akun"
     />
     <div className="w-full p-3.5">
       <h2 className="text-2xl font-bold mb-4.5">Profile</h2>

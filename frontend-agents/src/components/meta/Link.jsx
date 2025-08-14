@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router"
+import { useNavigate } from "react-router-dom"
 
 export default function Link({ href, linkoption, onClick, children, ...props }) {
   const navigate = useNavigate()

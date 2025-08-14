@@ -109,7 +109,7 @@ export default function Register() {
 
   return <>
     <HeadOperation
-      title="Az Store - Daftar Akun"
+      title="AZStore - Daftar Akun"
     />
     <div className="w-full h-full min-h-screen flex items-center justify-center px-3 py-[40px]">
       <form className="max-w-md w-full flex flex-col justify-center items-center px-2.5" onSubmit={SubmitForm}>

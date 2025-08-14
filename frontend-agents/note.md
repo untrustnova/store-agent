@@ -8,9 +8,9 @@ Adanya masalah seperti delay pada vendor [vendor\andrazero121\api-resource-typer
 
 **Dasar:**
 
-- [X] `/` : Home
-- [X] `/auth/login` : Authorization (Perizinan Token) - [ ] Login
-- [X] `/auth/register` : Authorization (Perizinan Token) - [ ] Register
+- [x] `/` : Home
+- [x] `/auth/login` : Authorization (Perizinan Token) - [ ] Login
+- [x] `/auth/register` : Authorization (Perizinan Token) - [ ] Register
 
 **Transaksi:**
 
@@ -23,7 +23,7 @@ Adanya masalah seperti delay pada vendor [vendor\andrazero121\api-resource-typer
 
 **Akun:**
 
-- [X] `/account` : Profil Pengguna
+- [x] `/account` : Profil Pengguna
 - [ ] `/account/transaction-history` : Riwayat Transaksi
 - [ ] `/account/transaction-status/:slug` : Status Transaksi
 
@@ -31,3 +31,7 @@ Adanya masalah seperti delay pada vendor [vendor\andrazero121\api-resource-typer
 
 - [ ] `/admin` : Dashboard Admin
 - [ ] `/admin/users` : List Users + Update User
+
+# Changes
+
+**Perbaikan**

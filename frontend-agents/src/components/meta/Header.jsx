@@ -1,4 +1,4 @@
-import { BookOpenIcon, BoxesIcon, GlobeLockIcon, HistoryIcon, HomeIcon, MenuIcon, PhoneIcon, User2Icon, X } from "lucide-react"
+import { BookOpenIcon, BoxesIcon, GlobeLockIcon, HistoryIcon, HomeIcon, MenuIcon, PhoneIcon, User2Icon, X, Zap } from "lucide-react"
 import { useEffect, useState } from "react"
 import Link from "./Link"
 import globalPathOrigin from "./global-path"
@@ -44,9 +44,45 @@ const dataNavigateWithLogin =  {
   ]
 }
 const dataNavigate = [
-  ...globalPathOrigin,
+  {
+    label: "Layanan",
+    showLabel: true,
+    links: [
+      {
+        icon: <PhoneIcon size={18} />,
+        label: "Pulsa",
+        text: "Isi ulang pulsa",
+        path: "/transaction/pulsa"
+      },
+      {
+        icon: <BoxesIcon size={18} />,
+        label: "E-Wallet",
+        text: "Top up e-wallet",
+        path: "/transaction/e-wallet"
+      },
+      {
+        icon: <BookOpenIcon size={18} />,
+        label: "Game",
+        text: "Top up game",
+        path: "/transaction/game"
+      },
+      {
+        icon: <GlobeLockIcon size={18} />,
+        label: "Bus",
+        text: "Tiket bus",
+        path: "/transaction/bus"
+      },
+      {
+        icon: <Zap size={18} />,
+        label: "Token Listrik",
+        text: "Beli token listrik",
+        path: "/transaction/token-listrik"
+      }
+    ]
+  },
   {
     label: "Lainnya",
+    showLabel: true,
     links: [
       {
         icon: <PhoneIcon />,

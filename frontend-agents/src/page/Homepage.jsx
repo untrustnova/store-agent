@@ -26,7 +26,7 @@ const slideContents = [
 export default function Homepage() {
   return <>
     <HeadOperation
-      title="Az Store - Web Agent Yang Terpercaya!"
+      title="AZStore - Web Agent Yang Terpercaya!"
     />
     <div className="w-full max-w-3xl m-auto">
       <div className="w-full p-2 px-3.5">

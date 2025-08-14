@@ -9,7 +9,7 @@ import RequestAPIApp from "../lib/request"
 import { toast } from "sonner"
 import { useAuthorization } from "../components/content/Authentication"
 import HeadOperation from "../components/content/HeadOperation"
-import { useNavigate } from "react-router"
+import { useNavigate } from "react-router-dom"
 
 const createLoginValidate = new validate.Form("register")
 createLoginValidate.append({
@@ -64,7 +64,7 @@ export default function Login() {
   }
   return <>
     <HeadOperation
-      title="Az Store - Masuk"
+      title="AZStore - Masuk"
     />
     <div className="w-full h-full min-h-screen flex items-center justify-center px-3 py-[40px]">
       <form className="max-w-md w-full flex flex-col justify-center items-center px-2.5" onSubmit={SubmitForm}>

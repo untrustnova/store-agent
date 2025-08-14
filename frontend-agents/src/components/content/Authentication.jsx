@@ -1,7 +1,7 @@
 import { useContext, createContext, useState, useEffect } from "react"
 import authOperation from "./_AuthOperation"
 import RequestAPIApp from "../../lib/request"
-import { useNavigate } from "react-router"
+import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
 const CreateAuthContext = createContext("auth")

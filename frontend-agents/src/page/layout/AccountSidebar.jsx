@@ -1,4 +1,4 @@
-import { Outlet } from "react-router"
+import { Outlet } from "react-router-dom"
 import { HistoryIcon, KeySquare, PenIcon, User2Icon, X } from "lucide-react"
 import { Toaster } from "sonner"
 import Link from "../../components/meta/Link"
