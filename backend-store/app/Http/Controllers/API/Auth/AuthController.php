@@ -85,13 +85,10 @@ class AuthController extends Controller
             'role' => 'agent',
         ]);
 
-        $token = $user->createToken($request->device_name ?? 'default')->plainTextToken;
-
         return response()->json([
             'status' => 'success',
             'message' => 'User registered successfully',
             'data' => [
-                'token' => $token,
                 'user' => new UserResource($user),
             ]
         ], 201);

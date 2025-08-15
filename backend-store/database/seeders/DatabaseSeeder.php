@@ -6,6 +6,7 @@ use App\Models\City;
 use App\Models\EWallet;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Database\Seeders\GameSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -51,5 +52,8 @@ class DatabaseSeeder extends Seeder
             ['name' => 'ShopeePay', 'code' => 'SHOPEEPAY'],
             ['name' => 'LinkAja', 'code' => 'LINKAJA'],
         ]);
+
+        // Seed games
+        $this->call(GameSeeder::class);
     }
 }

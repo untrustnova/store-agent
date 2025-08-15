@@ -46,6 +46,14 @@ const globalPathOrigin = [
         bgColor: "#892eff",
         fnColor: "white",
         path: "/transaction/token-listrik"
+      },
+      {
+        icon: <GlobeIcon size={18} />,
+        label: "Internet",
+        text: "Paket data internet",
+        bgColor: "#24cbd1",
+        fnColor: "white",
+        path: "/transaction/internet"
       }
       // {
       //   icon: <SmartphoneIcon />,

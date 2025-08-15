@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { toast } from "sonner"
 import RequestAPIApp from "../lib/request"
 import { useAuthorization } from "../components/content/Authentication"
@@ -20,30 +20,29 @@ export default function BusPage() {
   const [cities, setCities] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [messageErr, setMessageErr] = useState({})
-  const [routes, setRoutes] = useState([])
-  const [selectedRoute, setSelectedRoute] = useState(null)
+  const [routeInfo, setRouteInfo] = useState(null)
   const auth = useAuthorization()
 
-  useEffect(() => {
-    loadCities()
-  }, [])
-
-  async function loadCities() {
+  const loadCities = useCallback(async () => {
     try {
-      const response = await RequestAPIApp("/transaction/cities", {
+      const response = await RequestAPIApp("/services/cities", {
         headers: auth.headers()
       })
       if (response.data?.data?.cities) {
         setCities(response.data.data.cities)
       }
-    } catch (error) {
+    } catch {
       toast.error("Gagal memuat daftar kota", {
         description: "Silahkan coba lagi nanti"
       })
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [auth])
+
+  useEffect(() => {
+    loadCities()
+  }, [loadCities])
 
   async function handleSearch(e) {
     e.preventDefault()
@@ -63,19 +62,27 @@ export default function BusPage() {
     setMessageErr({})
 
     try {
-      const response = await RequestAPIApp("/transaction/validate-bus-route", {
+      const response = await RequestAPIApp("/services/validate-bus-route", {
         method: "POST",
         headers: auth.headers(),
         data: {
           from_city_id: parseInt(data.from_city_id),
           to_city_id: parseInt(data.to_city_id),
           date: data.date,
-          quantity: parseInt(data.quantity)
         }
       })
 
-      if (response.data?.data?.routes) {
-        setRoutes(response.data.data.routes)
+      if (response.data?.available) {
+        setRouteInfo({
+          from_city_id: parseInt(data.from_city_id),
+          to_city_id: parseInt(data.to_city_id),
+          date: data.date,
+          quantity: parseInt(data.quantity),
+          price: response.data.price,
+          available_seats: response.data.available_seats,
+          departure_time: response.data.departure_time,
+          arrival_time: response.data.arrival_time
+        })
       }
     } catch (error) {
       toast.error("Gagal mencari rute", {
@@ -85,25 +92,35 @@ export default function BusPage() {
   }
 
   async function handleBooking() {
-    if (!selectedRoute) return
+    if (!routeInfo) return
 
     try {
-      const response = await RequestAPIApp("/transaction/book-bus", {
+      const response = await RequestAPIApp("/transactions", {
         method: "POST",
         headers: auth.headers(),
         data: {
-          route_id: selectedRoute.id,
-          quantity: selectedRoute.quantity
+          type: "bus",
+          amount: routeInfo.price * routeInfo.quantity,
+          payment_method: "bank_transfer",
+          details: {
+            from_city_id: routeInfo.from_city_id,
+            to_city_id: routeInfo.to_city_id,
+            date: routeInfo.date,
+            quantity: routeInfo.quantity,
+            price_per_ticket: routeInfo.price,
+            departure_time: routeInfo.departure_time,
+            arrival_time: routeInfo.arrival_time
+          }
         }
       })
 
       if (response.data?.data?.snap_token) {
         window.snap.pay(response.data.data.snap_token, {
-          onSuccess: function(result) {
+          onSuccess: function() {
             toast.success("Pembayaran berhasil!")
             // Redirect to history or dashboard
           },
-          onError: function(result) {
+          onError: function() {
             toast.error("Pembayaran gagal", {
               description: "Silahkan coba lagi"
             })
@@ -207,45 +224,37 @@ export default function BusPage() {
         </Button>
       </form>
 
-      {routes.length > 0 && (
-        <div className="mt-8 space-y-4">
-          <h2 className="text-xl font-semibold">Hasil Pencarian</h2>
-          {routes.map(route => (
-            <div
-              key={route.id}
-              className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                selectedRoute?.id === route.id 
-                ? "border-blue-500 bg-blue-50" 
-                : "hover:border-gray-400"
-              }`}
-              onClick={() => setSelectedRoute(route)}
-            >
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium">{route.bus_name}</p>
-                  <p className="text-sm text-gray-600">
-                    {route.departure_time} - {route.arrival_time}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-lg">
-                    Rp {route.price.toLocaleString('id-ID')}
-                  </p>
-                  <p className="text-sm text-gray-600">per tiket</p>
-                </div>
-              </div>
+      {routeInfo && (
+        <div className="mt-8 p-6 border rounded-lg bg-gray-50">
+          <h2 className="text-xl font-semibold mb-4">Informasi Rute</h2>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <p className="text-sm text-gray-600">Waktu Keberangkatan</p>
+              <p className="font-medium">{routeInfo.departure_time}</p>
             </div>
-          ))}
+            <div>
+              <p className="text-sm text-gray-600">Waktu Kedatangan</p>
+              <p className="font-medium">{routeInfo.arrival_time}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Harga per Tiket</p>
+              <p className="font-medium">Rp {routeInfo.price.toLocaleString('id-ID')}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Total Pembayaran</p>
+              <p className="font-medium text-lg text-blue-600">
+                Rp {(routeInfo.price * routeInfo.quantity).toLocaleString('id-ID')}
+              </p>
+            </div>
+          </div>
 
-          {selectedRoute && (
-            <Button 
-              onClick={handleBooking}
-              className="w-full mt-4"
-            >
-              <span>Pesan Sekarang</span>
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          )}
+          <Button 
+            onClick={handleBooking}
+            className="w-full"
+          >
+            <span>Pesan Sekarang</span>
+            <ArrowRight className="w-5 h-5 ml-2" />
+          </Button>
         </div>
       )}
     </div>

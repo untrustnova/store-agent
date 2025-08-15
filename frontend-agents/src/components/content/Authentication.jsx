@@ -9,7 +9,7 @@ const CreateAuthContext = createContext("auth")
 function ParseJsonIfCanParser(jsonstr) {
   try {
     return JSON.parse(jsonstr)
-  } catch(e) {
+  } catch {
     return String(jsonstr)
   }
 }
@@ -32,7 +32,7 @@ export default function AuthenticationContext({ children }) {
     const getUser = localStorage.getItem(authOperation.saveuserkey)||"{}"
     return {
       user: ParseJsonIfCanParser(getUser),
-      token: localStorage.getItem(authOperation.saveuserkey)||null
+      token: localStorage.getItem(authOperation.savetokenkey)||null
     }
   }
   function SetAuth({ user, token } = {}) {

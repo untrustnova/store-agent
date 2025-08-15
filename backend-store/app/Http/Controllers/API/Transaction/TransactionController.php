@@ -428,9 +428,9 @@ class TransactionController extends Controller
         $result = match($transaction->type) {
             'bus' => $this->processBusTransaction($transaction),
             'ewallet' => $this->processEwalletTransaction($transaction),
-            'internet', 'pulsa' => $this->processPulsaTransaction($transaction),
+            'pulsa', 'kuota' => $this->processPulsaTransaction($transaction),
             'game' => $this->processGameTransaction($transaction),
-            'token' => $this->processTokenTransaction($transaction),
+            'token_listrik' => $this->processTokenTransaction($transaction),
             default => ['status' => 'unknown', 'message' => 'Unknown transaction type'],
         };
 
@@ -467,13 +467,19 @@ class TransactionController extends Controller
 
         $details = $transaction->details;
 
-        // In a real application, you would call your e-wallet service here
+        // Lookup e-wallet by selected product_id for consistent data
+        $wallet = null;
+        if (isset($details['product_id'])) {
+            $wallet = \App\Models\EWallet::find($details['product_id']);
+        }
+
         return [
             'status' => 'success',
             'message' => 'E-wallet topped up successfully',
             'data' => [
                 'reference' => 'EW-' . strtoupper(Str::random(8)),
-                'ewallet_code' => $details['ewallet_code'] ?? 'N/A',
+                'ewallet' => $wallet?->name ?? 'N/A',
+                'ewallet_code' => $wallet?->code ?? 'N/A',
                 'phone_number' => $details['phone_number'] ?? 'N/A',
                 'amount' => $transaction->amount
             ]
@@ -488,15 +494,33 @@ class TransactionController extends Controller
 
         $details = $transaction->details;
 
-        // In a real application, you would call your pulsa/data service here
+        // Derive product details from DB using product_id
+        $provider = 'N/A';
+        $package = 'N/A';
+        if (isset($details['product_id'])) {
+            if ($transaction->type === 'pulsa') {
+                $product = \App\Models\Pulsa::find($details['product_id']);
+                if ($product) {
+                    $provider = $product->provider;
+                    $package = (string) $product->nominal;
+                }
+            } elseif ($transaction->type === 'kuota') {
+                $product = \App\Models\Kuota::find($details['product_id']);
+                if ($product) {
+                    $provider = $product->provider;
+                    $package = $product->package_name;
+                }
+            }
+        }
+
         return [
             'status' => 'success',
             'message' => 'Pulsa/Data package purchased successfully',
             'data' => [
                 'reference' => 'PLS-' . strtoupper(Str::random(8)),
                 'phone_number' => $details['phone_number'] ?? 'N/A',
-                'provider' => $details['provider'] ?? 'N/A',
-                'package' => $details['package_name'] ?? 'N/A',
+                'provider' => $provider,
+                'package' => $package,
             ]
         ];
     }
@@ -509,16 +533,26 @@ class TransactionController extends Controller
 
         $details = $transaction->details;
 
-        // In a real application, you would call your game top-up service here
+        // Load product details from DB for consistency
+        $gameName = 'N/A';
+        $productName = 'N/A';
+        if (isset($details['product_id'])) {
+            $product = \App\Models\Game::find($details['product_id']);
+            if ($product) {
+                $gameName = $product->game_name;
+                $productName = $product->item_type . ' ' . $product->amount;
+            }
+        }
+
         return [
             'status' => 'success',
             'message' => 'Game currency purchased successfully',
             'data' => [
                 'reference' => 'GAME-' . strtoupper(Str::random(8)),
-                'game' => $details['game'] ?? 'N/A',
-                'user_id' => $details['user_id'] ?? 'N/A',
-                'server_id' => $details['server_id'] ?? 'N/A',
-                'product' => $details['product_name'] ?? 'N/A'
+                'game' => $gameName,
+                'uid' => $details['uid'] ?? 'N/A',
+                'server' => $details['server'] ?? 'N/A',
+                'product' => $productName
             ]
         ];
     }

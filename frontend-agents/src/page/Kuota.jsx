@@ -2,20 +2,20 @@ import { useEffect, useState, useCallback } from "react"
 import { toast } from "sonner"
 import RequestAPIApp from "../lib/request"
 import { useAuthorization } from "../components/content/Authentication"
-import { ArrowRight, Phone } from "lucide-react"
+import { ArrowRight, Wifi } from "lucide-react"
 import Input from "../components/meta/Input"
 import Button from "../components/meta/Button"
 import * as validate from "../lib/validate"
 import HandleingValidateError from "../lib/handle-validate"
 
-const createPulsaValidate = new validate.Form("pulsa")
-createPulsaValidate.append({
+const createKuotaValidate = new validate.Form("kuota")
+createKuotaValidate.append({
   phone: validate.string("Nomor Telepon").require().min(10).max(15),
-  product_id: validate.number("Produk Pulsa").require()
+  product_id: validate.number("Produk Kuota").require()
 })
 
-export default function PulsaPage() {
-  const [pulsaProducts, setPulsaProducts] = useState({})
+export default function KuotaPage() {
+  const [kuotaProducts, setKuotaProducts] = useState({})
   const [providers, setProviders] = useState([])
   const [selectedProvider, setSelectedProvider] = useState("")
   const [selectedProduct, setSelectedProduct] = useState(null)
@@ -23,20 +23,20 @@ export default function PulsaPage() {
   const [isLoading, setIsLoading] = useState(true)
   const auth = useAuthorization()
 
-  const loadPulsaProducts = useCallback(async () => {
+  const loadKuotaProducts = useCallback(async () => {
     try {
-      const response = await RequestAPIApp("/products/pulsa", {
+      const response = await RequestAPIApp("/products/kuota", {
         headers: auth.headers(),
       })
       if (response.data?.data) {
-        setPulsaProducts(response.data.data.pulsa)
+        setKuotaProducts(response.data.data.kuota)
         setProviders(response.data.data.providers)
         if (response.data.data.providers.length > 0) {
           setSelectedProvider(response.data.data.providers[0])
         }
       }
     } catch {
-      toast.error("Gagal memuat daftar produk pulsa", {
+      toast.error("Gagal memuat daftar produk kuota", {
         description: "Silahkan coba lagi nanti"
       })
     } finally {
@@ -45,8 +45,8 @@ export default function PulsaPage() {
   }, [auth])
 
   useEffect(() => {
-    loadPulsaProducts()
-  }, [loadPulsaProducts])
+    loadKuotaProducts()
+  }, [loadKuotaProducts])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -54,12 +54,12 @@ export default function PulsaPage() {
     const data = Object.fromEntries(form)
     
     if (!selectedProduct) {
-      toast.error("Pilih produk pulsa terlebih dahulu")
+      toast.error("Pilih produk kuota terlebih dahulu")
       return
     }
 
     // Validate form
-    const isValid = createPulsaValidate.validate(data)
+    const isValid = createKuotaValidate.validate(data)
     if (isValid) {
       const parseErrorValid = HandleingValidateError(isValid)
       setMessageErr(parseErrorValid.context)
@@ -75,7 +75,7 @@ export default function PulsaPage() {
         method: "POST",
         headers: auth.headers(),
         data: {
-          type: "pulsa",
+          type: "kuota",
           amount: selectedProduct.price,
           payment_method: "bank_transfer",
           details: {
@@ -117,11 +117,11 @@ export default function PulsaPage() {
     <div className="max-w-2xl mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Phone className="w-8 h-8" />
-          Pulsa
+          <Wifi className="w-8 h-8" />
+          Paket Data Internet
         </h1>
         <p className="text-gray-600 mt-2">
-          Isi pulsa dengan mudah dan instant
+          Beli paket data internet dengan mudah dan cepat
         </p>
       </div>
 
@@ -158,13 +158,13 @@ export default function PulsaPage() {
         </div>
 
         {/* Product Selection */}
-        {selectedProvider && pulsaProducts[selectedProvider] && (
+        {selectedProvider && kuotaProducts[selectedProvider] && (
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
-              Pilih Nominal Pulsa
+              Pilih Paket Data
             </label>
             <div className="grid grid-cols-2 gap-3">
-              {pulsaProducts[selectedProvider].items.map((product) => (
+              {kuotaProducts[selectedProvider].items.map((product) => (
                 <div
                   key={product.id}
                   className={`p-4 border rounded-lg cursor-pointer transition-colors ${
@@ -182,8 +182,12 @@ export default function PulsaPage() {
                     className="hidden"
                   />
                   <div className="text-center">
-                    <p className="font-bold text-lg">Rp {product.nominal.toLocaleString()}</p>
-                    <p className="text-sm text-gray-600">Rp {product.price.toLocaleString()}</p>
+                    <p className="font-bold text-lg">{product.package_name}</p>
+                    <p className="text-sm text-gray-600">{product.data_amount}</p>
+                    <p className="text-xs text-gray-500">{product.validity_period}</p>
+                    <p className="text-lg font-semibold text-blue-600">
+                      Rp {product.price.toLocaleString()}
+                    </p>
                     {product.description && (
                       <p className="text-xs text-gray-500 mt-1">{product.description}</p>
                     )}

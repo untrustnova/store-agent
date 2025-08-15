@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { toast } from "sonner"
 import RequestAPIApp from "../lib/request"
 import { useAuthorization } from "../components/content/Authentication"
@@ -22,26 +22,26 @@ export default function EWalletPage() {
   const [messageErr, setMessageErr] = useState({})
   const auth = useAuthorization()
 
-  useEffect(() => {
-    loadEWallets()
-  }, [])
-
-  async function loadEWallets() {
+  const loadEWallets = useCallback(async () => {
     try {
-      const response = await RequestAPIApp("/transaction/ewallets", {
+      const response = await RequestAPIApp("/services/e-wallets", {
         headers: auth.headers(),
       })
       if (response.data?.data?.ewallets) {
         setEwallets(response.data.data.ewallets)
       }
-    } catch (error) {
+    } catch {
       toast.error("Gagal memuat daftar e-wallet", {
         description: "Silahkan coba lagi nanti"
       })
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [auth])
+
+  useEffect(() => {
+    loadEWallets()
+  }, [loadEWallets])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -61,24 +61,28 @@ export default function EWalletPage() {
     setMessageErr({})
 
     try {
-      const response = await RequestAPIApp("/transaction/topup/ewallet", {
+      const response = await RequestAPIApp("/transactions", {
         method: "POST",
         headers: auth.headers(),
         data: {
-          ewallet_id: parseInt(data.ewallet_id),
-          phone: data.phone,
-          amount: parseInt(data.amount)
+          type: "ewallet",
+          amount: parseInt(data.amount),
+          payment_method: "bank_transfer",
+          details: {
+            product_id: parseInt(data.ewallet_id),
+            phone_number: data.phone
+          }
         }
       })
 
       if (response.data?.data?.snap_token) {
         // Redirect to payment
         window.snap.pay(response.data.data.snap_token, {
-          onSuccess: function(result) {
+          onSuccess: function() {
             toast.success("Pembayaran berhasil!")
             // Redirect to history or dashboard
           },
-          onError: function(result) {
+          onError: function() {
             toast.error("Pembayaran gagal", {
               description: "Silahkan coba lagi"
             })
@@ -131,11 +135,9 @@ export default function EWalletPage() {
                 checked={selectedEwallet?.id === wallet.id}
                 className="hidden"
               />
-              <img 
-                src={wallet.logo_url || "/placeholder-ewallet.png"} 
-                alt={wallet.name}
-                className="h-12 w-auto object-contain mx-auto mb-2"
-              />
+              <div className="h-12 w-auto flex items-center justify-center mb-2">
+                <span className="text-2xl font-bold text-gray-600">{wallet.code}</span>
+              </div>
               <p className="text-center font-medium">{wallet.name}</p>
             </div>
           ))}

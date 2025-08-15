@@ -25,6 +25,28 @@ Route::post('/transactions/notification', [TransactionController::class, 'notifi
 Route::post('/auth/login', [AuthController::class, 'login'])->name('auth.login');
 Route::post('/auth/register', [AuthController::class, 'register'])->name('auth.register');
 
+// Public Products Routes (No Auth Required)
+Route::prefix('products')->group(function () {
+    Route::get('/pulsa', [PublicResourceController::class, 'listPulsa'])->name('products.pulsa');
+    Route::get('/kuota', [PublicResourceController::class, 'listKuota'])->name('products.kuota');
+    Route::get('/games', [PublicResourceController::class, 'listGames'])->name('products.games');
+    Route::get('/token-listrik', [PublicResourceController::class, 'listTokenListrik'])->name('products.token');
+    Route::get('/{type}/{id}', [PublicResourceController::class, 'getProductDetails'])->name('products.details');
+});
+
+// Service Routes - Public Access (Read Only)
+Route::prefix('services')->group(function () {
+    Route::get('/cities', [ServiceController::class, 'cities'])->name('services.cities');
+    Route::get('/e-wallets', [ServiceController::class, 'eWallets'])->name('services.ewallets');
+
+    // Validation Routes
+    Route::post('/validate-bus-route', [ServiceController::class, 'validateBusRoute'])->name('services.validate-bus');
+    Route::post('/validate-ewallet-number', [ServiceController::class, 'validateEWalletNumber'])->name('services.validate-ewallet');
+    Route::post('/validate-phone-number', [ServiceController::class, 'validatePhoneNumber'])->name('services.validate-phone');
+    Route::post('/validate-game-account', [ServiceController::class, 'validateGameAccount'])->name('services.validate-game');
+    Route::post('/validate-token-meter', [ServiceController::class, 'validateTokenMeter'])->name('services.validate-token');
+});
+
 Route::middleware('auth:sanctum')->group(function () {
     // Auth Routes
     Route::get('/auth/me', [AuthController::class, 'me'])->name('auth.me');
@@ -41,28 +63,6 @@ Route::middleware('auth:sanctum')->group(function () {
         // Cash Payment Routes
         Route::post('/{transaction}/cash/process', [CashPaymentController::class, 'process'])->name('transactions.cash.process');
         Route::post('/{transaction}/cash/confirm', [CashPaymentController::class, 'confirm'])->middleware('admin')->name('transactions.cash.confirm');
-    });
-
-    // Public Products Routes (No Auth Required)
-    Route::prefix('products')->group(function () {
-        Route::get('/pulsa', [PublicResourceController::class, 'listPulsa'])->name('products.pulsa');
-        Route::get('/kuota', [PublicResourceController::class, 'listKuota'])->name('products.kuota');
-        Route::get('/games', [PublicResourceController::class, 'listGames'])->name('products.games');
-        Route::get('/token-listrik', [PublicResourceController::class, 'listTokenListrik'])->name('products.token');
-        Route::get('/{type}/{id}', [PublicResourceController::class, 'getProductDetails'])->name('products.details');
-    });
-
-    // Service Routes - Public Access (Read Only)
-    Route::prefix('services')->group(function () {
-        Route::get('/cities', [ServiceController::class, 'cities'])->name('services.cities');
-        Route::get('/e-wallets', [ServiceController::class, 'eWallets'])->name('services.ewallets');
-
-        // Validation Routes
-        Route::post('/validate-bus-route', [ServiceController::class, 'validateBusRoute'])->name('services.validate-bus');
-        Route::post('/validate-ewallet-number', [ServiceController::class, 'validateEWalletNumber'])->name('services.validate-ewallet');
-        Route::post('/validate-phone-number', [ServiceController::class, 'validatePhoneNumber'])->name('services.validate-phone');
-        Route::post('/validate-game-account', [ServiceController::class, 'validateGameAccount'])->name('services.validate-game');
-        Route::post('/validate-token-meter', [ServiceController::class, 'validateTokenMeter'])->name('services.validate-token');
     });
 
     // Admin Routes
@@ -122,6 +122,4 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 
-// Midtrans Webhook
-Route::post('/transactions/notification', [TransactionController::class, 'notification'])
-    ->name('transactions.notification');
+// (Removed duplicate Midtrans Webhook; defined above with json middleware)

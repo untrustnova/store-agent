@@ -10,7 +10,7 @@ const sidebarLinks = [
   },
   {
     icon: <Users size={20} />,
-    label: "Users",
+    label: "Agents",
     path: "/admin/users"
   },
   {

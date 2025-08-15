@@ -19,6 +19,7 @@ import PulsaPage from "./page/Pulsa"
 import BusPage from "./page/Bus"
 import EWalletPage from "./page/EWallet"
 import TokenListrikPage from "./page/TokenListrik"
+import KuotaPage from "./page/Kuota"
 
 // Admin Components
 import AdminLayout from "./page/admin/AdminLayout"
@@ -53,20 +54,7 @@ createRoot(document.getElementById("root")).render(
           <Route path="/transaction/pulsa" element={<PulsaPage />} />    {/* Transaksi Pulsa */}
           <Route path="/transaction/bus" element={<BusPage />} />      {/* Transaksi Bus */}
           <Route path="/transaction/e-wallet" element={<EWalletPage />} /> {/* Transaksi E-Wallet */}
-          <Route path="/transaction/internet" element={
-            <div className="flex min-h-screen items-center justify-center">
-              <div className="text-center p-8">
-                <h1 className="text-2xl font-bold mb-4">🚧 Coming Soon</h1>
-                <p className="text-gray-600 mb-4">Layanan internet sedang dalam pengembangan.</p>
-                <button 
-                  onClick={() => window.history.back()} 
-                  className="text-blue-500 hover:underline"
-                >
-                  Kembali
-                </button>
-              </div>
-            </div>
-          } /> {/* Transaksi Internet - Coming Soon */}
+          <Route path="/transaction/internet" element={<KuotaPage />} /> {/* Transaksi Internet */}
           <Route path="/transaction/game" element={<GameTransaction />} />     {/* Transaksi Game */}
           <Route path="/transaction/token-listrik" element={<TokenListrikPage />} />      {/* Transaksi Token Listrik */}
           <Route path="/transaction/pln" element={<Navigate to="/transaction/token-listrik" replace />} />      {/* Redirect PLN ke Token Listrik */}

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { toast } from "sonner"
 import RequestAPIApp from "../lib/request"
 import { useAuthorization } from "../components/content/Authentication"
@@ -11,23 +11,37 @@ import HandleingValidateError from "../lib/handle-validate"
 const createTokenValidate = new validate.Form("token")
 createTokenValidate.append({
   meter_number: validate.string("Nomor Meter").require().min(11).max(11),
-  amount: validate.number("Nominal Token").require()
+  product_id: validate.number("Produk Token").require()
 })
 
-const TOKEN_OPTIONS = [
-  { amount: 20000, label: "20,000", kwh: "13,2 kWh" },
-  { amount: 50000, label: "50,000", kwh: "33 kWh" },
-  { amount: 100000, label: "100,000", kwh: "66 kWh" },
-  { amount: 200000, label: "200,000", kwh: "132 kWh" },
-  { amount: 500000, label: "500,000", kwh: "330 kWh" },
-  { amount: 1000000, label: "1,000,000", kwh: "660 kWh" },
-]
-
 export default function TokenListrikPage() {
-  const [messageErr, setMessageErr] = useState({})
-  const [selectedAmount, setSelectedAmount] = useState(null)
+  const [tokenProducts, setTokenProducts] = useState([])
+  const [selectedProduct, setSelectedProduct] = useState(null)
   const [customerInfo, setCustomerInfo] = useState(null)
+  const [messageErr, setMessageErr] = useState({})
+  const [isLoading, setIsLoading] = useState(true)
   const auth = useAuthorization()
+
+  const loadTokenProducts = useCallback(async () => {
+    try {
+      const response = await RequestAPIApp("/products/token-listrik", {
+        headers: auth.headers(),
+      })
+      if (response.data?.data?.tokens) {
+        setTokenProducts(response.data.data.tokens)
+      }
+    } catch {
+      toast.error("Gagal memuat daftar produk token", {
+        description: "Silahkan coba lagi nanti"
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }, [auth])
+
+  useEffect(() => {
+    loadTokenProducts()
+  }, [loadTokenProducts])
 
   async function handleCheckMeter(e) {
     e.preventDefault()
@@ -39,14 +53,18 @@ export default function TokenListrikPage() {
     }
 
     try {
-      const response = await RequestAPIApp("/transaction/check-meter", {
+      const response = await RequestAPIApp("/services/validate-token-meter", {
         method: "POST",
         headers: auth.headers(),
         data: { meter_number: meterNumber }
       })
 
-      if (response.data?.data?.customer) {
-        setCustomerInfo(response.data.data.customer)
+      if (response.data?.valid) {
+        setCustomerInfo({
+          name: response.data.customer_name,
+          address: response.data.customer_address,
+          tariff: response.data.tariff
+        })
         setMessageErr({})
       }
     } catch (error) {
@@ -59,9 +77,11 @@ export default function TokenListrikPage() {
   async function handleSubmit(e) {
     e.preventDefault()
     const form = new FormData(e.target)
-    const data = {
-      ...Object.fromEntries(form),
-      amount: selectedAmount
+    const data = Object.fromEntries(form)
+    
+    if (!selectedProduct) {
+      toast.error("Pilih produk token terlebih dahulu")
+      return
     }
 
     // Validate form
@@ -77,22 +97,27 @@ export default function TokenListrikPage() {
     setMessageErr({})
 
     try {
-      const response = await RequestAPIApp("/transaction/topup/token", {
+      const response = await RequestAPIApp("/transactions", {
         method: "POST",
         headers: auth.headers(),
         data: {
-          meter_number: data.meter_number,
-          amount: data.amount
+          type: "token_listrik",
+          amount: selectedProduct.price,
+          payment_method: "bank_transfer",
+          details: {
+            product_id: selectedProduct.id,
+            meter_number: data.meter_number
+          }
         }
       })
 
       if (response.data?.data?.snap_token) {
         window.snap.pay(response.data.data.snap_token, {
-          onSuccess: function(result) {
+          onSuccess: function() {
             toast.success("Pembayaran berhasil!")
             // Redirect to history or dashboard
           },
-          onError: function(result) {
+          onError: function() {
             toast.error("Pembayaran gagal", {
               description: "Silahkan coba lagi"
             })
@@ -104,6 +129,14 @@ export default function TokenListrikPage() {
         description: error.response?.data?.message || "Silahkan coba lagi nanti"
       })
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+      </div>
+    )
   }
 
   return (
@@ -134,42 +167,57 @@ export default function TokenListrikPage() {
             <div className="p-4 bg-gray-50 rounded-lg">
               <h3 className="font-medium mb-2">Informasi Pelanggan:</h3>
               <p>Nama: {customerInfo.name}</p>
-              <p>Tarif/Daya: {customerInfo.power_rate}</p>
+              <p>Alamat: {customerInfo.address}</p>
+              <p>Tarif/Daya: {customerInfo.tariff}</p>
             </div>
           )}
         </div>
 
-        <div className="space-y-2">
-          <label className="block text-sm font-medium">Pilih Nominal</label>
-          <div className="grid grid-cols-2 gap-3">
-            {TOKEN_OPTIONS.map(option => (
-              <div
-                key={option.amount}
-                className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                  selectedAmount === option.amount 
-                  ? "border-blue-500 bg-blue-50" 
-                  : "hover:border-gray-400"
-                }`}
-                onClick={() => setSelectedAmount(option.amount)}
-              >
-                <p className="font-medium">Rp {option.label}</p>
-                <p className="text-sm text-gray-600">{option.kwh}</p>
-              </div>
-            ))}
+        {/* Product Selection */}
+        {customerInfo && (
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Pilih Nominal Token
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {tokenProducts.map((token) => (
+                <div
+                  key={token.id}
+                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                    selectedProduct?.id === token.id
+                      ? "border-blue-500 bg-blue-50"
+                      : "hover:border-gray-400"
+                  }`}
+                  onClick={() => setSelectedProduct(token)}
+                >
+                  <input
+                    type="radio"
+                    name="product_id"
+                    value={token.id}
+                    checked={selectedProduct?.id === token.id}
+                    className="hidden"
+                  />
+                  <div className="text-center">
+                    <p className="font-bold text-lg">Rp {token.nominal.toLocaleString()}</p>
+                    <p className="text-lg font-semibold text-blue-600">
+                      Rp {token.price.toLocaleString()}
+                    </p>
+                    {token.description && (
+                      <p className="text-xs text-gray-500 mt-1">{token.description}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          {messageErr?.amount && (
-            <p className="text-red-500 text-sm mt-1">{messageErr.amount}</p>
-          )}
-        </div>
+        )}
 
-        <Button 
-          type="submit" 
-          className="w-full"
-          disabled={!customerInfo || !selectedAmount}
-        >
-          <span>Beli Token</span>
-          <ArrowRight className="w-5 h-5 ml-2" />
-        </Button>
+        {selectedProduct && (
+          <Button type="submit" className="w-full">
+            <span>Lanjutkan Pembayaran</span>
+            <ArrowRight className="w-5 h-5 ml-2" />
+          </Button>
+        )}
       </form>
     </div>
   )
