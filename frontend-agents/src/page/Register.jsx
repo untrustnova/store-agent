@@ -10,6 +10,7 @@ import RequestAPIApp from "../lib/request"
 import { toast } from "sonner"
 import HeadOperation from "../components/content/HeadOperation"
 import { useAuthorization } from "../components/content/Authentication"
+import { useNavigate } from "react-router"
 
 const createRegisterValidate = new validate.Form("register")
 createRegisterValidate.append({
@@ -28,6 +29,7 @@ createRegisterValidate.append({
 })
 
 export default function Register() {
+  const navigate = useNavigate()
   const author = useAuthorization()
   const [inputuseMap, setinputuseMap] = useState(false)
   const [showToMap, setShowToMap] = useState(false)
@@ -97,13 +99,14 @@ export default function Register() {
     console.log(requestdata)
     if(!!requestdata?.data?.data?.user) {
       toast.success("Berhasil terdaftar!")
+      navigate("/auth/login")
       return; // Success Register
     }
     // Handle Error Client (Automaticly Send By RequestAPIApp)
     if(requestdata.isClient) return;
     // Handle Error Response
     toast.error("Error disisi server!", {
-      description: String(requestdata.data||"")
+      description: String(requestdata?.data?.message||requestdata?.data||"")
     })
   }
 

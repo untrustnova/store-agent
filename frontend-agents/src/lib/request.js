@@ -6,9 +6,9 @@ import { toast } from "sonner"
 const applyUpdateUs = [
   "auth/me", "/auth/me"
 ]
-// const baseURL = "http://127.0.0.1:8000/api"
+const baseURL = "http://127.0.0.1:8000/api"
 // const baseURL = "https://bd8001f04196.ngrok-free.app/api"
-const baseURL = "https://918b741c9ad5.ngrok-free.app/api"
+// const baseURL = "https://918b741c9ad5.ngrok-free.app/api"
 
 async function RequestAPIApp(url, { useAuth = true, showErrorOnToast = true, ...options } = {}) {
   try {
@@ -27,7 +27,9 @@ async function RequestAPIApp(url, { useAuth = true, showErrorOnToast = true, ...
     })
     if(applyUpdateUs.includes(url)) {
       // Always Update
-      localStorage.setItem(authOperation.saveuserkey, JSON.stringify(axiosRequest.data.data))
+      if(typeof axiosRequest.data?.data === "object") {
+        localStorage.setItem(authOperation.saveuserkey, JSON.stringify(axiosRequest.data.data))
+      }
     }
     return {
       ...axiosRequest,

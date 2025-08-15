@@ -48,8 +48,8 @@ export default function GameTransaction() {
   }, [auth])
 
   useEffect(() => {
-    loadGameProducts()
-  }, [loadGameProducts])
+    loadGameProducts() // Run one
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()

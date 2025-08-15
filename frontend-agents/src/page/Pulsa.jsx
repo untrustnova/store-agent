@@ -46,7 +46,7 @@ export default function PulsaPage() {
 
   useEffect(() => {
     loadPulsaProducts()
-  }, [loadPulsaProducts])
+  }, [])
 
   async function handleSubmit(e) {
     e.preventDefault()

@@ -54,6 +54,7 @@ export default function Login() {
       showErrorOnToast: true,
     })
     if(!!requestdata.data?.data?.user && !!requestdata.data?.data?.token) {
+      console.log(requestdata.data.data)
       author.setAuth(requestdata.data.data.token, requestdata.data.data.user)
       navigate("/account")
       toast.success("Dapat Login!")

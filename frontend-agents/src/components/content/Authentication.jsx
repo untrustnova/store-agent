@@ -35,6 +35,7 @@ export default function AuthenticationContext({ children }) {
     }
   }
   function SetAuth({ user, token } = {}) {
+    console.log("SetAuth Context:", { user, token })
     localStorage.setItem(authOperation.saveuserkey, JSON.stringify(user))
     localStorage.setItem(authOperation.savetokenkey, String(token).trim())
   }
@@ -118,6 +119,7 @@ export function useAuthorization() {
       }
     },
     setAuth: (token, user) => {
+      console.log("SetAuth Auth:", { user: user, token: token })
       return authuse.SetAuth({ token: token, user: user })
     },
     RemoveAuth: () => {
