@@ -21,6 +21,7 @@ export default function PulsaPage() {
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [messageErr, setMessageErr] = useState({})
   const [isLoading, setIsLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const auth = useAuthorization()
 
   const loadPulsaProducts = useCallback(async () => {
@@ -49,6 +50,7 @@ export default function PulsaPage() {
   }, [])
 
   async function handleSubmit(e) {
+    if(loading) return;
     e.preventDefault()
     const form = new FormData(e.target)
     const data = Object.fromEntries(form)
@@ -59,7 +61,10 @@ export default function PulsaPage() {
     }
 
     // Validate form
-    const isValid = createPulsaValidate.validate(data)
+    const isValid = createPulsaValidate.validate({
+      phone: String(data?.phone||""),
+      product_id: parseInt(data||"0")
+    })
     if (isValid) {
       const parseErrorValid = HandleingValidateError(isValid)
       setMessageErr(parseErrorValid.context)
@@ -70,6 +75,7 @@ export default function PulsaPage() {
     }
     setMessageErr({})
 
+    setLoading(true)
     try {
       const response = await RequestAPIApp("/transactions", {
         method: "POST",
@@ -102,6 +108,8 @@ export default function PulsaPage() {
       toast.error("Gagal membuat transaksi", {
         description: error.response?.data?.message || "Silahkan coba lagi nanti"
       })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -196,8 +204,14 @@ export default function PulsaPage() {
 
         {selectedProduct && (
           <Button type="submit" className="w-full">
-            <span>Lanjutkan Pembayaran</span>
-            <ArrowRight className="w-5 h-5 ml-2" />
+            <div className="flex items-center font-semibold">
+              {loading? <>
+                <span>Loading...</span>
+              </>:<>
+                <span>Lanjutkan Pembayaran</span>
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </>}
+            </div>
           </Button>
         )}
       </form>

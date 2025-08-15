@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { useAuthorization } from "../../components/content/Authentication"
 import RequestAPIApp from "../../lib/request"
-import HeadOperation from "../content/HeadOperation"
+import HeadOperation from "../../components/content/HeadOperation"
 import Button from "../../components/meta/Button"
 import { User, Phone, MapPin, Wallet, Shield, Edit, Save, X } from "lucide-react"
 

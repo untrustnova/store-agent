@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { useAuthorization } from "../../components/content/Authentication"
 import RequestAPIApp from "../../lib/request"
-import HeadOperation from "../content/HeadOperation"
+import HeadOperation from "../../components/content/HeadOperation"
 import { Clock, CheckCircle, XCircle, AlertCircle, DollarSign } from "lucide-react"
 
 export default function TransactionHistory() {

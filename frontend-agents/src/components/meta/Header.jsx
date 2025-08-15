@@ -1,4 +1,4 @@
-import { BookOpenIcon, BoxesIcon, GlobeLockIcon, HistoryIcon, HomeIcon, MenuIcon, PhoneIcon, User2Icon, X, Zap } from "lucide-react"
+import { BookOpenIcon, BoxesIcon, GlobeLockIcon, HistoryIcon, HomeIcon, LogOutIcon, MenuIcon, PhoneIcon, User2Icon, X, Zap } from "lucide-react"
 import { useEffect, useState } from "react"
 import Link from "./Link"
 import globalPathOrigin from "./global-path"
@@ -16,30 +16,6 @@ const dataNavigateNonLogin = {
       label: "Beranda",
       text: "Menu utama",
       path: "/"
-    },
-  ]
-}
-const dataNavigateWithLogin =  {
-  label: "Profile",
-  showLabel: false,
-  links: [
-    {
-      icon: <HomeIcon />,
-      label: "Beranda",
-      text: "Menu utama",
-      path: "/"
-    },
-    {
-      icon: <User2Icon />,
-      label: "Akun",
-      text: "Menu pada akun kamu",
-      path: "/account"
-    },
-    {
-      icon: <HistoryIcon />,
-      label: "Riwayat",
-      text: "Riwayat transaksi & pembayaran",
-      path: "/account/transaction-history"
     },
   ]
 }
@@ -145,7 +121,7 @@ function Header_LinkProfile({ label, icon, text, path, showCaseBorder = false, c
   </Link>
 }
 
-function Header_GroupLink({ label, showLabel = true, links = [], closeSection }) {
+function Header_GroupLink({ label, showLabel = true, links = [], onClick, closeSection }) {
   const linkContainList = Array.isArray(links)? links.filter(a => (
     !!a.text && !!a.label && !!a.icon &&
     !!a.path && typeof (a.text && a.label && a.path) === "string")
@@ -158,7 +134,15 @@ function Header_GroupLink({ label, showLabel = true, links = [], closeSection })
     <div className="bg-white w-full py-1.5 pr-3 pb-2.5 shadow-sm">
       {linkContainList.map((linked, i) => (
         <Header_LinkProfile
-          closeSection={closeSection||null}
+          closeSection={(e) => {
+            console.log(onClick, closeSection)
+            if(typeof onClick === "function") {
+              onClick()
+            }
+            if(typeof closeSection === "function") {
+              closeSection()
+            }
+          }}
           key={i}
           label={linked.label}
           icon={linked.icon}
@@ -179,6 +163,42 @@ export default function Header() {
   const topRecommendList = globalPathOrigin.flatMap(a =>
     a.links.filter(l => l.topRecommend)
   ).slice(0, 3)
+
+  const dataNavigateWithLogin =  {
+    label: "Profile",
+    showLabel: false,
+    links: [
+      {
+        icon: <HomeIcon />,
+        label: "Beranda",
+        text: "Menu utama",
+        path: "/"
+      },
+      {
+        icon: <User2Icon />,
+        label: "Akun",
+        text: "Menu pada akun kamu",
+        path: "/account"
+      },
+      {
+        icon: <LogOutIcon />,
+        color: "red",
+        label: "Keluar",
+        text: "Logout",
+        path: "#",
+        onclick: () => {
+          author.RemoveAuth()
+          // localStorage
+        }
+      },
+      {
+        icon: <HistoryIcon />,
+        label: "Riwayat",
+        text: "Riwayat transaksi & pembayaran",
+        path: "/account/transaction-history"
+      },
+    ]
+  }
 
   async function GetProfileUser() {
     const pictureImg = CanvasGenerateImagePicture(400, 400)
@@ -272,7 +292,7 @@ export default function Header() {
         </div>
         <div className="w-auto px-4.5 flex items-center overflow-hidden">
           {topRecommendList.map((a, i) => (
-            <Link href={a.path} className="px-2 py-2.5 flex items-center cursor-pointer max-md:hidden" key={i}>
+            <Link href={a.path} className="px-2 py-2.5 flex items-center cursor-pointer max-md:hidden" key={i} style={{ color: a.color||"" }}>
               <span className="mr-2 scale-85">{a.icon}</span>
               <span className="text-sm overflow-hidden text-ellipsis whitespace-nowrap">{a.label}</span>
             </Link>

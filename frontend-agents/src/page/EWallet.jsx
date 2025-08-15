@@ -41,7 +41,7 @@ export default function EWalletPage() {
 
   useEffect(() => {
     loadEWallets()
-  }, [loadEWallets])
+  }, [])
 
   async function handleSubmit(e) {
     e.preventDefault()

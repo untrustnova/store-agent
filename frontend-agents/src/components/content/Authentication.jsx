@@ -98,17 +98,17 @@ export default function AuthenticationContext({ children }) {
         showErrorOnToast: false,
       })
       
-      if (response.data?.data?.user) {
+      if (response.data?.data) {
         // Token is valid, update user data and set login state
-        SetAuth({ token, user: response.data.data.user })
+        SetAuth({ token: String(token||"").trim(), user: response.data.data })
         setauthisLogin(true)
       } else {
         // Token is invalid, clear auth
-        RemoveAuth()
+        // RemoveAuth()
       }
     } catch {
       // Token validation failed, clear auth
-      RemoveAuth()
+      // RemoveAuth()
     }
   }
   return <CreateAuthContext.Provider value={{
