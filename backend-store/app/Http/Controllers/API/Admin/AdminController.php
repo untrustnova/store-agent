@@ -74,4 +74,62 @@ class AdminController extends Controller
             ]
         ]);
     }
+
+    public function payments(): JsonResponse
+    {
+        $transactions = Transaction::with('user')
+            ->where('payment_method', 'cash')
+            ->latest()
+            ->paginate();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => TransactionResource::collection($transactions)
+        ]);
+    }
+
+    public function approvePayment(Transaction $transaction): JsonResponse
+    {
+        if ($transaction->payment_method !== 'cash') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Only cash payments can be approved'
+            ], 400);
+        }
+
+        $transaction->payment_status = 'paid';
+        $transaction->status = 'completed';
+        $transaction->paid_at = now();
+        $transaction->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Payment approved successfully',
+            'data' => [
+                'transaction' => new TransactionResource($transaction)
+            ]
+        ]);
+    }
+
+    public function rejectPayment(Transaction $transaction): JsonResponse
+    {
+        if ($transaction->payment_method !== 'cash') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Only cash payments can be rejected'
+            ], 400);
+        }
+
+        $transaction->payment_status = 'failed';
+        $transaction->status = 'failed';
+        $transaction->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Payment rejected successfully',
+            'data' => [
+                'transaction' => new TransactionResource($transaction)
+            ]
+        ]);
+    }
 }

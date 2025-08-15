@@ -1,0 +1,1000 @@
+# Store Agent API Resource Documentation
+
+## Base URL
+```
+https://918b741c9ad5.ngrok-free.app/api
+```
+
+## Authentication
+
+### Login - POST /api/auth/login
+**Request:**
+```json
+{
+    "email": "admin@admin.com",
+    "password": "password123"
+}
+```
+
+**Response:**
+```json
+{
+    "status": "success",
+    "message": "Login successful",
+    "data": {
+        "user": {
+            "id": 1,
+            "name": "Super Admin",
+            "email": "admin@admin.com",
+            "phone_number": "081234567890",
+            "address": "Jl. Admin No. 1",
+            "role": "admin",
+            "balance": "0.00",
+            "is_active": true
+        },
+        "token": "SANCTUM_TOKEN_HERE"
+    }
+}
+```
+
+### Register - POST /api/auth/register
+**Request:**
+```json
+{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "password123",
+    "phone_number": "081234567890",
+    "address": "Jl. Example Street No. 123"
+}
+```
+
+**Response:**
+```json
+{
+    "status": "success",
+    "message": "User registered successfully",
+    "data": {
+        "user": {
+            "id": 2,
+            "name": "John Doe",
+            "email": "john@example.com",
+            "phone_number": "081234567890",
+            "address": "Jl. Example Street No. 123",
+            "role": "agent",
+            "balance": "0.00",
+            "is_active": true
+        },
+        "token": "SANCTUM_TOKEN_HERE"
+    }
+}
+```
+
+### Get Profile - GET /api/auth/me
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+```json
+{
+    "status": "success",
+    "data": {
+        "user": {
+            "id": 1,
+            "name": "Super Admin",
+            "email": "admin@admin.com",
+            "phone_number": "081234567890",
+            "address": "Jl. Admin No. 1",
+            "role": "admin",
+            "balance": "0.00",
+            "is_active": true
+        }
+    }
+}
+```
+
+### Logout - POST /api/auth/logout
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+```json
+{
+    "status": "success",
+    "message": "Logged out successfully"
+}
+```
+
+## Public Products (No Authentication Required)
+
+### Get Pulsa Products - GET /api/products/pulsa
+**Query Parameters:**
+- `provider` (optional): Filter by provider
+- `nominal` (optional): Filter by nominal amount
+
+**Response:**
+```json
+{
+    "status": "success",
+    "data": {
+        "providers": ["Telkomsel", "XL", "Indosat"],
+        "pulsa": {
+            "Telkomsel": {
+                "items": [
+                    {
+                        "id": 1,
+                        "nominal": 5000,
+                        "price": "5200.00",
+                        "description": "Pulsa Telkomsel 5rb"
+                    },
+                    {
+                        "id": 2,
+                        "nominal": 10000,
+                        "price": "10200.00",
+                        "description": "Pulsa Telkomsel 10rb"
+                    }
+                ]
+            }
+        }
+    }
+}
+```
+
+### Get Kuota Products - GET /api/products/kuota
+**Query Parameters:**
+- `provider` (optional): Filter by provider
+
+**Response:**
+```json
+{
+    "status": "success",
+    "data": {
+        "providers": ["Telkomsel", "XL", "Indosat"],
+        "kuota": {
+            "Telkomsel": {
+                "items": [
+                    {
+                        "id": 1,
+                        "package_name": "Internet 1GB",
+                        "data_amount": "1GB",
+                        "validity_period": "7 Hari",
+                        "price": "15000.00",
+                        "description": "Paket Internet Telkomsel 1GB 7 Hari"
+                    }
+                ]
+            }
+        }
+    }
+}
+```
+
+### Get Game Products - GET /api/products/games
+**Query Parameters:**
+- `game_name` (optional): Filter by game name
+
+**Response:**
+```json
+{
+    "status": "success",
+    "data": {
+        "games": ["Genshin Impact", "Honkai Star Rail", "Mobile Legends"],
+        "items": {
+            "Genshin Impact": {
+                "items": [
+                    {
+                        "id": 1,
+                        "item_type": "Genesis Crystal",
+                        "amount": "60",
+                        "price": "16000.00",
+                        "description": "GC 60"
+                    },
+                    {
+                        "id": 2,
+                        "item_type": "Genesis Crystal",
+                        "amount": "300 + 30",
+                        "price": "79000.00",
+                        "description": "GC 300 + Bonus"
+                    }
+                ]
+            }
+        }
+    }
+}
+```
+
+### Get Token Listrik Products - GET /api/products/token-listrik
+**Query Parameters:**
+- `min_nominal` (optional): Minimum nominal amount
+- `max_nominal` (optional): Maximum nominal amount
+
+**Response:**
+```json
+{
+    "status": "success",
+    "data": {
+        "tokens": [
+            {
+                "id": 1,
+                "nominal": 20000,
+                "price": "20500.00",
+                "description": "Token Listrik 20.000"
+            },
+            {
+                "id": 2,
+                "nominal": 50000,
+                "price": "51000.00",
+                "description": "Token Listrik 50.000"
+            }
+        ]
+    }
+}
+```
+
+### Get Product Details - GET /api/products/{type}/{id}
+**Path Parameters:**
+- `type`: One of `pulsa`, `kuota`, `games`, `token-listrik`
+- `id`: Product ID
+
+**Response:**
+```json
+{
+    "status": "success",
+    "data": {
+        "product": {
+            "id": 1,
+            "provider": "Telkomsel",
+            "nominal": 5000,
+            "price": "5200.00",
+            "description": "Pulsa Telkomsel 5rb",
+            "is_active": true
+        }
+    }
+}
+```
+
+## Public Services (No Authentication Required)
+
+### Get Cities - GET /api/services/cities
+**Response:**
+```json
+{
+    "status": "success",
+    "data": [
+        {
+            "id": 1,
+            "name": "Jakarta",
+            "province": "DKI Jakarta"
+        },
+        {
+            "id": 2,
+            "name": "Surabaya",
+            "province": "Jawa Timur"
+        }
+    ]
+}
+```
+
+### Get E-Wallets - GET /api/services/e-wallets
+**Response:**
+```json
+{
+    "status": "success",
+    "data": [
+        {
+            "id": 1,
+            "name": "DANA",
+            "code": "DANA",
+            "is_active": true
+        },
+        {
+            "id": 2,
+            "name": "OVO",
+            "code": "OVO",
+            "is_active": true
+        }
+    ]
+}
+```
+
+### Validate Bus Route - POST /api/services/validate-bus-route
+**Request:**
+```json
+{
+    "from_city_id": 1,
+    "to_city_id": 2,
+    "date": "2024-01-15",
+    "quantity": 2
+}
+```
+
+**Response:**
+```json
+{
+    "status": "success",
+    "data": {
+        "route_info": {
+            "from_city": "Jakarta",
+            "to_city": "Surabaya",
+            "date": "2024-01-15",
+            "price_per_ticket": 150000,
+            "total_price": 300000,
+            "departure_time": "08:00",
+            "arrival_time": "20:00",
+            "available_seats": 45
+        }
+    }
+}
+```
+
+### Validate E-Wallet Number - POST /api/services/validate-ewallet-number
+**Request:**
+```json
+{
+    "ewallet_code": "DANA",
+    "phone_number": "081234567890"
+}
+```
+
+**Response:**
+```json
+{
+    "status": "success",
+    "data": {
+        "is_valid": true,
+        "message": "E-wallet number is valid"
+    }
+}
+```
+
+### Validate Phone Number - POST /api/services/validate-phone-number
+**Request:**
+```json
+{
+    "phone_number": "081234567890",
+    "provider": "Telkomsel"
+}
+```
+
+**Response:**
+```json
+{
+    "status": "success",
+    "data": {
+        "is_valid": true,
+        "message": "Phone number is valid for Telkomsel"
+    }
+}
+```
+
+### Validate Game Account - POST /api/services/validate-game-account
+**Request:**
+```json
+{
+    "game_name": "Mobile Legends",
+    "user_id": "ML123456",
+    "server": "12345"
+}
+```
+
+**Response:**
+```json
+{
+    "status": "success",
+    "data": {
+        "is_valid": true,
+        "message": "Game account is valid"
+    }
+}
+```
+
+### Validate Token Meter - POST /api/services/validate-token-meter
+**Request:**
+```json
+{
+    "meter_number": "1234567890"
+}
+```
+
+**Response:**
+```json
+{
+    "status": "success",
+    "data": {
+        "customer_info": {
+            "name": "John Doe",
+            "address": "Jl. Example No. 123",
+            "tariff": "R1M",
+            "power": "900VA"
+        }
+    }
+}
+```
+
+## Transactions (Authentication Required)
+
+### Create Transaction - POST /api/transactions
+**Headers:** `Authorization: Bearer {token}`
+
+**Request Body:**
+```json
+{
+    "type": "pulsa",
+    "amount": 5200,
+    "payment_method": "bank_transfer",
+    "details": {
+        "product_id": 1,
+        "phone_number": "081234567890"
+    }
+}
+```
+
+**Transaction Types and Required Details:**
+
+#### Pulsa Transaction
+```json
+{
+    "type": "pulsa",
+    "amount": 5200,
+    "payment_method": "bank_transfer",
+    "details": {
+        "product_id": 1,
+        "phone_number": "081234567890"
+    }
+}
+```
+
+#### Kuota Transaction
+```json
+{
+    "type": "kuota",
+    "amount": 15000,
+    "payment_method": "virtual_account",
+    "details": {
+        "product_id": 1,
+        "phone_number": "081234567890"
+    }
+}
+```
+
+#### Game Transaction
+```json
+{
+    "type": "game",
+    "amount": 16000,
+    "payment_method": "ewallet",
+    "details": {
+        "product_id": 1,
+        "uid": "ML123456",
+        "server": "12345"
+    }
+}
+```
+
+#### Token Listrik Transaction
+```json
+{
+    "type": "token_listrik",
+    "amount": 20500,
+    "payment_method": "qris",
+    "details": {
+        "product_id": 1,
+        "meter_number": "1234567890"
+    }
+}
+```
+
+#### E-Wallet Transaction
+```json
+{
+    "type": "ewallet",
+    "amount": 10000,
+    "payment_method": "bank_transfer",
+    "details": {
+        "product_id": 1,
+        "phone_number": "081234567890"
+    }
+}
+```
+
+#### Bus Transaction
+```json
+{
+    "type": "bus",
+    "amount": 300000,
+    "payment_method": "bank_transfer",
+    "details": {
+        "from_city_id": 1,
+        "to_city_id": 2,
+        "date": "2024-01-15",
+        "quantity": 2,
+        "price_per_ticket": 150000,
+        "departure_time": "08:00",
+        "arrival_time": "20:00"
+    }
+}
+```
+
+**Response:**
+```json
+{
+    "status": "success",
+    "message": "Transaction created successfully",
+    "data": {
+        "transaction": {
+            "id": 1,
+            "reference_id": "TRX-ABCD1234",
+            "type": "pulsa",
+            "amount": "5200.00",
+            "admin_fee": "4000.00",
+            "total_amount": "9200.00",
+            "payment_method": "bank_transfer",
+            "payment_status": "pending",
+            "status": "pending",
+            "details": {
+                "product_id": 1,
+                "phone_number": "081234567890"
+            },
+            "snap_token": "MIDTRANS-SNAP-TOKEN-HERE"
+        },
+        "snap_token": "MIDTRANS-SNAP-TOKEN-HERE",
+        "redirect_url": "https://app.midtrans.com/snap/v2/vtweb/..."
+    }
+}
+```
+
+### Get Transaction History - GET /api/transactions/history
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+```json
+{
+    "status": "success",
+    "message": "Transaction history retrieved successfully",
+    "data": {
+        "transactions": [
+            {
+                "id": 1,
+                "reference_id": "TRX-ABCD1234",
+                "type": "pulsa",
+                "amount": "5200.00",
+                "admin_fee": "4000.00",
+                "total_amount": "9200.00",
+                "payment_method": "bank_transfer",
+                "payment_status": "paid",
+                "status": "completed",
+                "created_at": "2024-01-15T10:30:00.000000Z"
+            }
+        ]
+    }
+}
+```
+
+### Get Transaction Details - GET /api/transactions/{id}
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+```json
+{
+    "status": "success",
+    "message": "Transaction details retrieved successfully",
+    "data": {
+        "transaction": {
+            "id": 1,
+            "reference_id": "TRX-ABCD1234",
+            "type": "pulsa",
+            "amount": "5200.00",
+            "admin_fee": "4000.00",
+            "total_amount": "9200.00",
+            "payment_method": "bank_transfer",
+            "payment_status": "paid",
+            "status": "completed",
+            "details": {
+                "product_id": 1,
+                "phone_number": "081234567890"
+            },
+            "created_at": "2024-01-15T10:30:00.000000Z",
+            "paid_at": "2024-01-15T10:35:00.000000Z"
+        }
+    }
+}
+```
+
+### Check Transaction Status - GET /api/transactions/{id}/status
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+```json
+{
+    "status": "success",
+    "data": {
+        "reference": "PLS-ABCD1234",
+        "phone_number": "081234567890",
+        "provider": "Telkomsel",
+        "package": "5000"
+    }
+}
+```
+
+### Check Payment Status - GET /api/transactions/{id}/check-status
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+```json
+{
+    "status": "success",
+    "message": "Payment status retrieved successfully",
+    "data": {
+        "transaction": {
+            "id": 1,
+            "payment_status": "paid",
+            "status": "completed"
+        },
+        "payment_status": "settlement",
+        "raw_status": {
+            "transaction_status": "settlement",
+            "payment_type": "bank_transfer"
+        }
+    }
+}
+```
+
+## Admin Routes (Admin Authentication Required)
+
+### Dashboard - GET /api/admin/dashboard
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+```json
+{
+    "status": "success",
+    "message": "Dashboard data retrieved successfully",
+    "data": {
+        "total_agents": 25,
+        "active_agents": 23,
+        "today_transactions": 15,
+        "today_amount": 2500000
+    }
+}
+```
+
+### Get Transactions - GET /api/admin/transactions
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+```json
+{
+    "status": "success",
+    "data": [
+        {
+            "id": 1,
+            "reference_id": "TRX-ABCD1234",
+            "user": {
+                "id": 2,
+                "name": "John Doe",
+                "email": "john@example.com"
+            },
+            "type": "pulsa",
+            "amount": "5200.00",
+            "total_amount": "9200.00",
+            "payment_status": "paid",
+            "status": "completed",
+            "created_at": "2024-01-15T10:30:00.000000Z"
+        }
+    ]
+}
+```
+
+### Get Transaction Summary - GET /api/admin/transaction-summary
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+```json
+{
+    "total_transactions": 150,
+    "paid_transactions": 120,
+    "total_amount": 25000000,
+    "total_fees": 600000
+}
+```
+
+### User Management
+
+#### List Users - GET /api/admin/users
+**Headers:** `Authorization: Bearer {token}`
+
+**Response:**
+```json
+{
+    "status": "success",
+    "data": [
+        {
+            "id": 2,
+            "name": "John Doe",
+            "email": "john@example.com",
+            "phone_number": "081234567890",
+            "address": "Jl. Example Street No. 123",
+            "role": "agent",
+            "balance": "0.00",
+            "is_active": true,
+            "created_at": "2024-01-15T10:00:00.000000Z"
+        }
+    ]
+}
+```
+
+#### Create User - POST /api/admin/users
+**Headers:** `Authorization: Bearer {token}`
+
+**Request:**
+```json
+{
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "password": "password123",
+    "phone_number": "081234567891",
+    "address": "Jl. Example Street No. 124",
+    "role": "agent"
+}
+```
+
+#### Update User - PUT /api/admin/users/{id}
+**Headers:** `Authorization: Bearer {token}`
+
+**Request:**
+```json
+{
+    "name": "Jane Doe Updated",
+    "phone_number": "081234567892",
+    "address": "Jl. Example Street No. 125"
+}
+```
+
+#### Delete User - DELETE /api/admin/users/{id}
+**Headers:** `Authorization: Bearer {token}`
+
+#### Toggle User Status - POST /api/admin/users/{id}/toggle-status
+**Headers:** `Authorization: Bearer {token}`
+
+### Product Management
+
+#### Pulsa Management
+- `GET /api/admin/pulsa` - List all pulsa products
+- `POST /api/admin/pulsa` - Create new pulsa product
+- `PUT /api/admin/pulsa/{id}` - Update pulsa product
+- `DELETE /api/admin/pulsa/{id}` - Delete pulsa product
+
+#### Kuota Management
+- `GET /api/admin/kuota` - List all kuota products
+- `POST /api/admin/kuota` - Create new kuota product
+- `PUT /api/admin/kuota/{id}` - Update kuota product
+- `DELETE /api/admin/kuota/{id}` - Delete kuota product
+
+#### Game Management
+- `GET /api/admin/games` - List all game products
+- `POST /api/admin/games` - Create new game product
+- `PUT /api/admin/games/{id}` - Update game product
+- `DELETE /api/admin/games/{id}` - Delete game product
+
+#### Token Listrik Management
+- `GET /api/admin/token-listrik` - List all token products
+- `POST /api/admin/token-listrik` - Create new token product
+- `PUT /api/admin/token-listrik/{id}` - Update token product
+- `DELETE /api/admin/token-listrik/{id}` - Delete token product
+
+#### E-Wallet Management
+- `GET /api/admin/e-wallets` - List all e-wallet products
+- `POST /api/admin/e-wallets` - Create new e-wallet product
+- `PUT /api/admin/e-wallets/{id}` - Update e-wallet product
+- `DELETE /api/admin/e-wallets/{id}` - Delete e-wallet product
+
+#### City Management
+- `GET /api/admin/cities` - List all cities
+- `POST /api/admin/cities` - Create new city
+- `PUT /api/admin/cities/{id}` - Update city
+- `DELETE /api/admin/cities/{id}` - Delete city
+
+### Payment Management
+- `GET /api/admin/payments` - List all payments
+- `POST /api/admin/payments/{transaction}/approve` - Approve payment
+- `POST /api/admin/payments/{transaction}/reject` - Reject payment
+
+## Cash Payment Routes (Authentication Required)
+
+### Process Cash Payment - POST /api/transactions/{id}/cash/process
+**Headers:** `Authorization: Bearer {token}`
+
+**Request:**
+```json
+{
+    "amount_received": 10000,
+    "notes": "Payment received in cash"
+}
+```
+
+### Confirm Cash Payment - POST /api/transactions/{id}/cash/confirm
+**Headers:** `Authorization: Bearer {token}` (Admin only)
+
+**Request:**
+```json
+{
+    "confirmed": true,
+    "admin_notes": "Payment confirmed by admin"
+}
+```
+
+## Midtrans Webhook
+
+### Payment Notification - POST /api/transactions/notification
+**No Authentication Required** - Called by Midtrans
+
+**Request Body:** Midtrans notification payload
+
+**Response:**
+```json
+{
+    "status": "success",
+    "message": "Notification handled successfully"
+}
+```
+
+## Data Models Structure
+
+### User Model
+```php
+protected $fillable = [
+    'name',
+    'email',
+    'password',
+    'phone_number',
+    'address',
+    'role',           // 'admin' | 'agent'
+    'balance',
+    'is_active'
+];
+```
+
+### Transaction Model
+```php
+protected $fillable = [
+    'user_id',
+    'type',           // 'bus' | 'ewallet' | 'pulsa' | 'kuota' | 'game' | 'token_listrik'
+    'reference_id',
+    'amount',
+    'admin_fee',
+    'total_amount',
+    'details',        // JSON field
+    'payment_method', // 'bank_transfer' | 'virtual_account' | 'ewallet' | 'qris' | 'cash'
+    'payment_reference',
+    'payment_status', // 'pending' | 'paid' | 'failed' | 'expired' | 'refunded'
+    'status',         // 'pending' | 'processing' | 'completed' | 'failed' | 'refunded'
+    'snap_token',
+    'paid_at',
+    'expired_at'
+];
+```
+
+### Pulsa Model
+```php
+protected $fillable = [
+    'provider',       // 'Telkomsel' | 'XL' | 'Indosat' | etc.
+    'nominal',        // Integer amount
+    'price',          // Decimal price
+    'description',
+    'is_active'
+];
+```
+
+### Kuota Model
+```php
+protected $fillable = [
+    'provider',       // 'Telkomsel' | 'XL' | 'Indosat' | etc.
+    'package_name',   // 'Internet 1GB' | 'Internet 10GB' | etc.
+    'data_amount',    // '1GB' | '10GB' | etc.
+    'validity_period', // '7 Hari' | '30 Hari' | etc.
+    'price',          // Decimal price
+    'description',
+    'is_active'
+];
+```
+
+### Game Model
+```php
+protected $fillable = [
+    'game_name',      // 'Genshin Impact' | 'Mobile Legends' | etc.
+    'item_type',      // 'Genesis Crystal' | 'Diamonds' | etc.
+    'amount',         // '60' | '100' | etc.
+    'price',          // Decimal price
+    'description',
+    'is_active'
+];
+```
+
+### Token Listrik Model
+```php
+protected $fillable = [
+    'nominal',        // Integer amount
+    'price',          // Decimal price
+    'description',
+    'is_active'
+];
+```
+
+### EWallet Model
+```php
+protected $fillable = [
+    'name',           // 'DANA' | 'OVO' | 'GoPay' | etc.
+    'code',           // 'DANA' | 'OVO' | 'GOPAY' | etc.
+    'is_active'
+];
+```
+
+### City Model
+```php
+protected $fillable = [
+    'name',           // 'Jakarta' | 'Surabaya' | etc.
+    'province',       // 'DKI Jakarta' | 'Jawa Timur' | etc.
+    'is_active'
+];
+```
+
+## Error Responses
+
+### Validation Error
+```json
+{
+    "status": "error",
+    "message": "Validation failed",
+    "errors": {
+        "phone_number": ["The phone number field is required"],
+        "amount": ["The amount must be greater than 1000"]
+    }
+}
+```
+
+### Authentication Error
+```json
+{
+    "status": "error",
+    "message": "Unauthenticated"
+}
+```
+
+### Authorization Error
+```json
+{
+    "status": "error",
+    "message": "Unauthorized access"
+}
+```
+
+### Not Found Error
+```json
+{
+    "status": "error",
+    "message": "Resource not found"
+}
+```
+
+### Server Error
+```json
+{
+    "status": "error",
+    "message": "Internal server error"
+}
+```
+
+## Rate Limiting
+- Public endpoints: 60 requests per minute
+- Authenticated endpoints: 120 requests per minute
+- Admin endpoints: 300 requests per minute
+
+## Caching
+- Product listings: 1 hour
+- Service data: 30 minutes
+- User profile: 15 minutes
+
+## Notes
+- All monetary amounts are returned as strings with 2 decimal places
+- Dates are returned in ISO 8601 format (UTC)
+- The `details` field in transactions is a JSON object that varies by transaction type
+- Admin fee is automatically calculated based on payment method
+- Snap tokens are generated for non-cash payment methods
+- Cash payments bypass Midtrans and are processed manually

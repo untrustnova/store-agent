@@ -11,13 +11,13 @@ return new class extends Migration
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->enum('type', ['bus', 'ewallet', 'internet', 'game', 'token', 'pulsa']);
+            $table->enum('type', ['bus', 'ewallet', 'pulsa', 'kuota', 'game', 'token_listrik']);
             $table->string('reference_id')->unique();
             $table->decimal('amount', 12, 2);
             $table->decimal('admin_fee', 12, 2)->default(0);
             $table->decimal('total_amount', 12, 2);
             $table->json('details')->nullable();
-            $table->enum('payment_method', ['bank_transfer', 'virtual_account', 'ewallet', 'qris']);
+            $table->enum('payment_method', ['bank_transfer', 'virtual_account', 'ewallet', 'qris', 'cash']);
             $table->string('payment_reference')->nullable();
             $table->enum('payment_status', ['pending', 'paid', 'failed', 'expired', 'refunded'])->default('pending');
             $table->enum('status', ['pending', 'processing', 'completed', 'failed', 'refunded'])->default('pending');

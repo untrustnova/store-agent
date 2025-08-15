@@ -24,6 +24,16 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 class AdminResourceController extends Controller
 {
     // User Management
+    public function listUsers(): JsonResponse
+    {
+        $users = User::where('role', 'agent')->paginate();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => UserResource::collection($users)
+        ]);
+    }
+
     public function createUser(Request $request): JsonResponse
     {
         $request->validate([

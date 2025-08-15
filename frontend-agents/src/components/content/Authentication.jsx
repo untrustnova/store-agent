@@ -2,7 +2,6 @@ import { useContext, createContext, useState, useEffect } from "react"
 import authOperation from "./_AuthOperation"
 import RequestAPIApp from "../../lib/request"
 import { useNavigate } from "react-router-dom"
-import { toast } from "sonner"
 
 const CreateAuthContext = createContext("auth")
 
@@ -22,7 +21,7 @@ export default function AuthenticationContext({ children }) {
     const storageTy = localStorage.getItem("use-id")
     const cryptoKey = crypto.randomUUID()
     const generate = `${window?.navigator?.userAgentData?.platform||"Unknowing"} - ${cryptoKey}`
-    if(!!storageTy) {
+    if(storageTy) {
       return storageTy
     }
     localStorage.setItem("use-id", generate)
@@ -40,28 +39,49 @@ export default function AuthenticationContext({ children }) {
     localStorage.setItem(authOperation.savetokenkey, String(token).trim())
   }
   async function RemoveAuth({ useRedirect = false } = {}) {
-    const requestauth = await RequestAPIApp("/auth/logout", {
-      method: "POST",
-      showErrorOnToast: true,
-    })
-    // Success
-    if(!requestauth.isError && requestauth.data) {
+    const currentAuth = GetAuth()
+    
+    // If no token exists, just clear local storage
+    if (!currentAuth.token) {
       localStorage.removeItem(authOperation.saveuserkey)
       localStorage.removeItem(authOperation.savetokenkey)
-      if(useRedirect) {
+      if (useRedirect) {
+        navigate("/") // Back To Home
+      }
+      return
+    }
+
+    try {
+      await RequestAPIApp("/auth/logout", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${currentAuth.token}`,
+          "accept": "application/json, text/txt"
+        },
+        showErrorOnToast: false,
+      })
+      
+      // Success or any response, clear local storage
+      localStorage.removeItem(authOperation.saveuserkey)
+      localStorage.removeItem(authOperation.savetokenkey)
+      
+      if (useRedirect) {
+        navigate("/") // Back To Home
+      }
+    } catch {
+      // Even if logout fails, clear local storage to prevent stuck state
+      localStorage.removeItem(authOperation.saveuserkey)
+      localStorage.removeItem(authOperation.savetokenkey)
+      
+      if (useRedirect) {
         navigate("/") // Back To Home
       }
     }
-    if(requestauth.isClient) return;
-    // Logout Failed
-    toast.error("Gagal logout dari akun!",{
-      description: "Masalah berasal dari server"
-    })
   }
 
   useEffect(() => {
     const getauth = GetAuth()
-    if(!!getauth.token && !!getauth.user) {
+    if(getauth.token && getauth.user) {
       setauthisLogin(true)
     }
   }, [])
@@ -93,7 +113,7 @@ export function useAuthorization() {
       const tokenUs = authuse.GetAuth()?.token
       const prefix = "Bearer"
       return {
-        "Authorization": !!tokenUs? `${prefix} ${tokenUs}`:"",
+        "Authorization": tokenUs ? `${prefix} ${tokenUs}` : "",
         "accept": "application/json, text/txt"
       }
     },

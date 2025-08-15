@@ -41,6 +41,8 @@ class Transaction extends Model
         return $this->belongsTo(User::class);
     }
 
+    // These relationships are not currently used in the current implementation
+    // but kept for potential future bus route functionality
     public function fromCity(): BelongsTo
     {
         return $this->belongsTo(City::class, 'from_city_id');

@@ -44,7 +44,7 @@ export default function GetLocationWithMap({ defaultCenter, onChange }) {
       console.log(error)
       const response = error.response
       toast.error("Permintaan Gagal", {
-        description: !!response? "Kesalahan pada permintaan":"Kesalahan pada sisi klien"
+        description: !response? "Kesalahan pada permintaan":"Kesalahan pada sisi klien"
       })
     }
   }

@@ -207,8 +207,10 @@ export default function Header() {
     const getLocalUser = author.getUser()
     // Authentikasi Tidak Resmi
     if(!getLocalUser || typeof getLocalUser !== "object" || !getLocalUser?.name) {
-      if(!!getLocalUser) {
-        author.RemoveAuth() // Remove Auth Corrupted
+      if(getLocalUser) {
+        // Clear corrupted auth without calling RemoveAuth to avoid logout API call
+        localStorage.removeItem("user")
+        localStorage.removeItem("token")
       }
       setProfile({
         data: {
@@ -253,7 +255,7 @@ export default function Header() {
     return () => {
       window.removeEventListener("keydown", KeyboardDown)
     }
-  }, [isOpen])
+  }, [])
 
   return <>
     <header className="sticky top-0 left-0 w-full h-[50px] bg-ba-shiroko-palette-medium/80 backdrop-blur-sm flex items-center text-white shadow-md z-50">
@@ -326,13 +328,13 @@ export default function Header() {
           </div>
           <div className="w-[calc(100%-68px)] px-2.5 pl-3 text-nowrap overflow-hidden text-ellipsis whitespace-nowrap">
             <h1 className="text-base font-semibold mb-1 block w-full text-nowrap overflow-hidden text-ellipsis whitespace-nowrap">{`Hai ${String(profileUser?.data?.username||"tamu!")}`}</h1>
-            {!!(profileUser?.data?.isLogin)? <span className="text-sm text-blue-500 group-hover:underline">Buka profile kamu</span>:
+            {(profileUser?.data?.isLogin)? <span className="text-sm text-blue-500 group-hover:underline">Buka profile kamu</span>:
             <p className="text-sm overflow-hidden text-ellipsis">Saat ini kamu belum masuk!, <span className="text-blue-500 group-hover:underline">klik untuk masuk menggunakan akun kamu</span></p>}
           </div>
         </Link>:<div className="w-full h-[80px] flex justify-center items-center text-neutral-500 italic">
           <p>Loading...</p>
         </div>}
-        {(!!(profileUser?.data?.isLogin)? [dataNavigateWithLogin,...globalPathOrigin,...dataNavigate]:[dataNavigateNonLogin,...globalPathOrigin,...dataNavigate]).map((groupLink, i) => (
+        {((profileUser?.data?.isLogin)? [dataNavigateWithLogin,...globalPathOrigin,...dataNavigate]:[dataNavigateNonLogin,...globalPathOrigin,...dataNavigate]).map((groupLink, i) => (
           <Header_GroupLink key={i} links={groupLink.links} label={groupLink.label} showLabel={groupLink.showLabel} closeSection={CloseAllMenuSection}/>
         ))}
         <div className="h-[30px]"></div>

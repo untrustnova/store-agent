@@ -130,7 +130,7 @@ export default function GameTransaction() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Game Selection */}
+      {/* Game Selection */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">
             Pilih Game
@@ -151,28 +151,28 @@ export default function GameTransaction() {
               </button>
             ))}
           </div>
-        </div>
+      </div>
 
         {/* User ID and Server */}
         <div className="grid grid-cols-2 gap-4">
-          <Input
+            <Input
             label="User ID"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
             placeholder="Masukkan User ID"
             error={messageErr?.user_id}
           />
 
           <Input
             label="Server"
-            value={server}
-            onChange={(e) => setServer(e.target.value)}
+              value={server}
+              onChange={(e) => setServer(e.target.value)}
             placeholder="Global/Japan/Asia"
             error={messageErr?.server}
           />
-        </div>
+          </div>
 
-        {/* Product Selection */}
+          {/* Product Selection */}
         {selectedGame && games[selectedGame] && (
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
@@ -217,7 +217,7 @@ export default function GameTransaction() {
             <span>Lanjutkan Pembayaran</span>
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
-        )}
+      )}
       </form>
     </div>
   )
