@@ -21,8 +21,8 @@ export default function UsersManagement() {
       const response = await RequestAPIApp("/admin/users", {
         headers: auth.headers()
       })
-      if (response.data?.data?.users) {
-        setUsers(response.data.data.users)
+      if (response.data?.data) {
+        setUsers(response.data.data)
       }
     } catch (error) {
       toast.error("Failed to load users", {
@@ -109,6 +109,7 @@ export default function UsersManagement() {
                 <th className="p-4">ID</th>
                 <th className="p-4">Name</th>
                 <th className="p-4">Email</th>
+                <th className="p-4">Phone</th>
                 <th className="p-4">Role</th>
                 <th className="p-4">Status</th>
                 <th className="p-4">Actions</th>
@@ -120,13 +121,14 @@ export default function UsersManagement() {
                   <td className="p-4">{user.id}</td>
                   <td className="p-4">{user.name}</td>
                   <td className="p-4">{user.email}</td>
+                  <td className="p-4">{user.phone_number || '-'}</td>
                   <td className="p-4">{user.role}</td>
                   <td className="p-4">
                     <span className={`px-2 py-1 rounded text-sm ${
-                      user.status === "active" ? "bg-green-100 text-green-800" :
+                      user.is_active ? "bg-green-100 text-green-800" :
                       "bg-red-100 text-red-800"
                     }`}>
-                      {user.status}
+                      {user.is_active ? "Active" : "Inactive"}
                     </span>
                   </td>
                   <td className="p-4">
@@ -209,22 +211,42 @@ export default function UsersManagement() {
                   <label className="block text-sm font-medium mb-1">Role</label>
                   <select
                     name="role"
-                    defaultValue={selectedUser?.role || "user"}
+                    defaultValue={selectedUser?.role || "agent"}
                     className="w-full p-2 border rounded"
                   >
-                    <option value="user">User</option>
+                    <option value="agent">Agent</option>
                     <option value="admin">Admin</option>
                   </select>
                 </div>
                 <div>
+                  <label className="block text-sm font-medium mb-1">Phone Number</label>
+                  <input
+                    type="tel"
+                    name="phone_number"
+                    defaultValue={selectedUser?.phone_number}
+                    required
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Address</label>
+                  <textarea
+                    name="address"
+                    defaultValue={selectedUser?.address}
+                    required
+                    className="w-full p-2 border rounded"
+                    rows="3"
+                  />
+                </div>
+                <div>
                   <label className="block text-sm font-medium mb-1">Status</label>
                   <select
-                    name="status"
-                    defaultValue={selectedUser?.status || "active"}
+                    name="is_active"
+                    defaultValue={selectedUser?.is_active ? "1" : "0"}
                     className="w-full p-2 border rounded"
                   >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
+                    <option value="1">Active</option>
+                    <option value="0">Inactive</option>
                   </select>
                 </div>
               </div>

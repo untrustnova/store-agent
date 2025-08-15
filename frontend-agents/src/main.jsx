@@ -26,6 +26,10 @@ import AdminLayout from "./page/admin/AdminLayout"
 import AdminDashboard from "./page/admin/Dashboard"
 import UsersManagement from "./page/admin/Users"
 
+// User Management
+import UserManagement from "./page/layout/UserManagement"
+import TransactionHistory from "./page/layout/TransactionHistory"
+
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <Routes>
@@ -61,8 +65,9 @@ createRoot(document.getElementById("root")).render(
           {/* Bagian Akun */}
           <Route element={<AccountSidebar />}>
             <Route path="/account" element={<ProfileUser />} />                          {/* Account - Profile Users */}
-            <Route path="/account/transaction-history" element={<ProfileUser />} />      {/* Account - History Transaction >> postman_collection.json (520) */}
+            <Route path="/account/transaction-history" element={<TransactionHistory />} />      {/* Account - History Transaction >> postman_collection.json (520) */}
             <Route path="/account/transaction-status/:slug" element={<ProfileUser />} /> {/* Account - Status Transaction >> postman_collection.json (533) */}
+            <Route path="/account/manage" element={<UserManagement />} />               {/* Account - User Management */}
           </Route>
           {/* Bagian Admin */}
           <Route path="/admin" element={<AdminLayout />}>

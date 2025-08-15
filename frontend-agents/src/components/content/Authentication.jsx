@@ -83,14 +83,40 @@ export default function AuthenticationContext({ children }) {
   useEffect(() => {
     const getauth = GetAuth()
     if(getauth.token && getauth.user) {
-      setauthisLogin(true)
+      // Validate token by calling /auth/me
+      validateToken(getauth.token)
     }
   }, [])
+
+  async function validateToken(token) {
+    try {
+      const response = await RequestAPIApp("/auth/me", {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "accept": "application/json, text/txt"
+        },
+        showErrorOnToast: false,
+      })
+      
+      if (response.data?.data?.user) {
+        // Token is valid, update user data and set login state
+        SetAuth({ token, user: response.data.data.user })
+        setauthisLogin(true)
+      } else {
+        // Token is invalid, clear auth
+        RemoveAuth()
+      }
+    } catch {
+      // Token validation failed, clear auth
+      RemoveAuth()
+    }
+  }
   return <CreateAuthContext.Provider value={{
     GetAuth,
     SetAuth,
     RemoveAuth,
     GetDeviceID,
+    validateToken,
     authisLogin
   }}>
     {children}
@@ -124,6 +150,12 @@ export function useAuthorization() {
     },
     RemoveAuth: () => {
       return authuse.RemoveAuth()
+    },
+    refreshAuth: () => {
+      const getauth = authuse.GetAuth()
+      if (getauth.token) {
+        return authuse.validateToken(getauth.token)
+      }
     }
   }
 }
