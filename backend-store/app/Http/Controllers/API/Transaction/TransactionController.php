@@ -24,13 +24,83 @@ class TransactionController extends Controller
         $this->midtransService = $midtransService;
     }
 
+    protected function validateProduct(string $type, int $productId, float $amount): void
+    {
+        $product = match($type) {
+            'pulsa' => \App\Models\Pulsa::findOrFail($productId),
+            'kuota' => \App\Models\Kuota::findOrFail($productId),
+            'game' => \App\Models\Game::findOrFail($productId),
+            'token_listrik' => \App\Models\TokenListrik::findOrFail($productId),
+            default => throw new \InvalidArgumentException('Invalid product type')
+        };
+
+        if (!$product->is_active) {
+            throw new \InvalidArgumentException('Product is not active');
+        }
+
+        if ($product->price != $amount) {
+            throw new \InvalidArgumentException('Invalid amount for the selected product');
+        }
+    }
+
+    protected function getItemDetails(Transaction $transaction): array
+    {
+        $product = match($transaction->type) {
+            'pulsa' => \App\Models\Pulsa::findOrFail($transaction->details['product_id']),
+            'kuota' => \App\Models\Kuota::findOrFail($transaction->details['product_id']),
+            'game' => \App\Models\Game::findOrFail($transaction->details['product_id']),
+            'token_listrik' => \App\Models\TokenListrik::findOrFail($transaction->details['product_id']),
+            default => null
+        };
+
+        $items = [];
+
+        if ($product) {
+            $itemName = match($transaction->type) {
+                'pulsa' => "Pulsa {$product->provider} - {$product->nominal}",
+                'kuota' => "Paket {$product->provider} - {$product->package_name}",
+                'game' => "{$product->game_name} - {$product->item_type} {$product->amount}",
+                'token_listrik' => "Token Listrik {$product->nominal}",
+                default => ucfirst($transaction->type) . ' Transaction'
+            };
+
+            $items[] = [
+                'id' => $transaction->type . '_' . $product->id,
+                'price' => $transaction->amount,
+                'quantity' => 1,
+                'name' => $itemName,
+            ];
+        } else {
+            $items[] = [
+                'id' => $transaction->type,
+                'price' => $transaction->amount,
+                'quantity' => 1,
+                'name' => ucfirst($transaction->type) . ' Transaction',
+            ];
+        }
+
+        // Add admin fee
+        $items[] = [
+            'id' => 'admin_fee',
+            'price' => $transaction->admin_fee,
+            'quantity' => 1,
+            'name' => 'Admin Fee',
+        ];
+
+        return $items;
+    }
+
     public function create(Request $request): JsonResponse
     {
         $request->validate([
-            'type' => 'required|in:bus,ewallet,internet,game,token,pulsa',
+            'type' => 'required|in:bus,ewallet,pulsa,kuota,game,token_listrik',
             'amount' => 'required|numeric|min:1000',
             'payment_method' => 'required|in:bank_transfer,virtual_account,ewallet,qris,cash',
             'details' => 'required|array',
+            'details.product_id' => 'required|integer',
+            'details.phone_number' => 'required_if:type,pulsa,kuota',
+            'details.game_id' => 'required_if:type,game',
+            'details.meter_number' => 'required_if:type,token_listrik',
         ]);
 
         $user = $request->user();
@@ -62,26 +132,16 @@ class TransactionController extends Controller
                 'email' => $user->email,
                 'phone' => $user->phone_number,
             ],
-            'item_details' => [
-                [
-                    'id' => $transaction->type,
-                    'price' => $transaction->amount,
-                    'quantity' => 1,
-                    'name' => ucfirst($transaction->type) . ' Transaction',
-                ],
-                [
-                    'id' => 'admin_fee',
-                    'price' => $transaction->admin_fee,
-                    'quantity' => 1,
-                    'name' => 'Admin Fee',
-                ],
-            ],
+            'item_details' => $this->getItemDetails($transaction),
             'callbacks' => [
                 'finish' => config('midtrans.finish_url'),
                 'error' => config('midtrans.error_url'),
                 'pending' => config('midtrans.pending_url')
             ],
         ];
+
+        // Validasi produk dan harga
+        $this->validateProduct($request->type, $request->details['product_id'], $request->amount);
 
         // Ambil Snap Token Dari Midtrans
         $result = $this->midtransService->createTransaction($params);

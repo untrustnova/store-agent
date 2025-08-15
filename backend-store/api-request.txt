@@ -1,0 +1,192 @@
+# Store Agent API Documentation
+
+## Authentication
+
+### Login - POST /api/auth/login
+{
+    "email": "admin@example.com",
+    "password": "password123"
+}
+
+// Register - POST /api/auth/register
+{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "password123",
+    "phone_number": "081234567890",
+    "address": "Jl. Example Street No. 123"
+}
+
+# Transaction Requests
+
+// Pulsa Transaction - POST /api/transactions
+{
+    "type": "pulsa",
+    "amount": 52000,
+    "payment_method": "bank_transfer",
+    "details": {
+        "product_id": 1,
+        "phone_number": "081234567890",
+        "provider": "Telkomsel"
+    }
+}
+
+// Kuota Transaction - POST /api/transactions
+{
+    "type": "kuota",
+    "amount": 100000,
+    "payment_method": "virtual_account",
+    "details": {
+        "product_id": 2,
+        "phone_number": "081234567890",
+        "provider": "XL",
+        "package_name": "Internet 10GB"
+    }
+}
+
+// Game Transaction - POST /api/transactions
+{
+    "type": "game",
+    "amount": 150000,
+    "payment_method": "ewallet",
+    "details": {
+        "product_id": 3,
+        "game_id": "ML123456",
+        "game_name": "Mobile Legends",
+        "item_type": "Diamonds"
+    }
+}
+
+// Token Listrik Transaction - POST /api/transactions
+{
+    "type": "token_listrik",
+    "amount": 50000,
+    "payment_method": "qris",
+    "details": {
+        "product_id": 4,
+        "meter_number": "1234567890",
+        "nominal": "50000"
+    }
+}
+
+# Admin Product Management
+
+// Create Pulsa - POST /api/admin/pulsa
+{
+    "provider": "Telkomsel",
+    "nominal": 50000,
+    "price": 52000,
+    "description": "Pulsa Telkomsel 50rb",
+    "is_active": true
+}
+
+// Update Pulsa - PUT /api/admin/pulsa/{id}
+{
+    "provider": "Telkomsel",
+    "nominal": 50000,
+    "price": 52000,
+    "description": "Pulsa Telkomsel 50rb",
+    "is_active": true
+}
+
+// Create Kuota - POST /api/admin/kuota
+{
+    "provider": "XL",
+    "package_name": "Internet 10GB",
+    "data_amount": "10GB",
+    "validity_period": "30 Hari",
+    "price": 100000,
+    "description": "Paket Internet XL 10GB 30 Hari",
+    "is_active": true
+}
+
+// Update Kuota - PUT /api/admin/kuota/{id}
+{
+    "provider": "XL",
+    "package_name": "Internet 10GB",
+    "data_amount": "10GB",
+    "validity_period": "30 Hari",
+    "price": 100000,
+    "description": "Paket Internet XL 10GB 30 Hari",
+    "is_active": true
+}
+
+// Create Game - POST /api/admin/game
+{
+    "game_name": "Mobile Legends",
+    "item_type": "Diamonds",
+    "amount": "100",
+    "price": 150000,
+    "description": "100 Diamonds Mobile Legends",
+    "is_active": true
+}
+
+// Update Game - PUT /api/admin/game/{id}
+{
+    "game_name": "Mobile Legends",
+    "item_type": "Diamonds",
+    "amount": "100",
+    "price": 150000,
+    "description": "100 Diamonds Mobile Legends",
+    "is_active": true
+}
+
+// Create Token - POST /api/admin/token-listrik
+{
+    "nominal": 50000,
+    "price": 51000,
+    "description": "Token Listrik 50.000",
+    "is_active": true
+}
+
+// Update Token - PUT /api/admin/token-listrik/{id}
+{
+    "nominal": 50000,
+    "price": 51000,
+    "description": "Token Listrik 50.000",
+    "is_active": true
+}
+
+# Available Payment Methods
+- "bank_transfer"
+- "virtual_account"
+- "ewallet"
+- "qris"
+- "cash"
+
+# Example Response Formats
+
+// Success Response
+{
+    "status": "success",
+    "data": {
+        "transaction": {
+            "id": 1,
+            "reference_id": "TRX-ABCD1234",
+            "type": "pulsa",
+            "amount": 52000,
+            "admin_fee": 1000,
+            "total_amount": 53000,
+            "payment_method": "bank_transfer",
+            "payment_status": "pending",
+            "status": "pending",
+            "details": {
+                "product_id": 1,
+                "phone_number": "081234567890",
+                "provider": "Telkomsel"
+            },
+            "snap_token": "MIDTRANS-SNAP-TOKEN-HERE"
+        }
+    },
+    "message": "Transaction created successfully"
+}
+
+// Error Response
+{
+    "status": "error",
+    "message": "Validation failed",
+    "errors": {
+        "phone_number": ["The phone number field is required"],
+        "amount": ["The amount must be greater than 1000"]
+    }
+}
