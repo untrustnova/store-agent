@@ -360,7 +360,7 @@ class TransactionController extends Controller
         if ($paymentStatus !== $transaction->payment_status) {
             if ($paymentStatus === 'capture' || $paymentStatus === 'settlement') {
                 $transaction->payment_status = 'paid';
-                $transaction->status = 'complete';
+                $transaction->status = 'completed';
                 $transaction->payment_reference = $result['data']['transaction_id'];
             } elseif (in_array($paymentStatus, ['cancel', 'deny'])) {
                 $transaction->payment_status = 'failed';

@@ -38,7 +38,7 @@ class CashPaymentController extends Controller
 
             // Update status transaksi
             $transaction->payment_status = 'paid';
-            $transaction->status = 'complete';
+            $transaction->status = 'completed';
             $transaction->payment_reference = 'CASH-' . $transaction->reference_id;
             $transaction->save();
 
@@ -89,7 +89,7 @@ class CashPaymentController extends Controller
 
             // Update status transaksi
             $transaction->payment_status = 'paid';
-            $transaction->status = 'complete';
+            $transaction->status = 'completed';
             $transaction->save();
 
             Log::info('✅ Cash payment confirmed by admin', [
