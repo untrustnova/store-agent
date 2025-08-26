@@ -1,6 +1,6 @@
-# Az Store
+# AZStore
 
-Welcome to the **Az Store** project, your one-stop solution for seamless bus ticket payments and e-wallet top-ups, powered by Midtrans. This user-friendly interface is designed to make your transactions smooth and efficient.
+Welcome to the **AZStore** project, your one-stop solution for seamless bus ticket payments and e-wallet top-ups, powered by Midtrans. This user-friendly interface is designed to make your transactions smooth and efficient.
 
 ## 🗃️ Key Features
 
