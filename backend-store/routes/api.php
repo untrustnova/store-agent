@@ -56,7 +56,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [TransactionController::class, 'create'])->name('transactions.create');
         Route::get('/history', [TransactionController::class, 'history'])->name('transactions.history');
         Route::get('/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
-        Route::get('/{transaction}/status', [TransactionController::class, 'checkStatus'])->name('transactions.check-status');
+        Route::get('/{transaction}/status', [TransactionController::class, 'checkPaymentStatus'])->name('transactions.check-status');
+        Route::get('/{transaction}/check-status', [TransactionController::class, 'checkPaymentStatus'])->name('transactions.manual-check');
         Route::get('/{transaction}/payment-status', [TransactionController::class, 'checkPaymentStatus'])->name('transactions.check-payment-status');
 
         // Cash Payment Routes

@@ -25,6 +25,7 @@ import KuotaPage from "./page/Kuota"
 import AdminLayout from "./page/admin/AdminLayout"
 import AdminDashboard from "./page/admin/Dashboard"
 import UsersManagement from "./page/admin/Users"
+import AdminTransactions from "./page/admin/Transactions"
 
 // User Management
 import UserManagement from "./page/layout/UserManagement"
@@ -73,19 +74,12 @@ createRoot(document.getElementById("root")).render(
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="users" element={<UsersManagement />} />
-            <Route path="transactions" element={
-              <div className="flex min-h-screen items-center justify-center">
-                <div className="text-center p-8">
-                  <h1 className="text-2xl font-bold mb-4">🚧 Coming Soon</h1>
-                  <p className="text-gray-600 mb-4">Halaman transaksi admin sedang dalam pengembangan.</p>
-                </div>
-              </div>
-            } />
+            <Route path="transactions" element={<AdminTransactions />} />
             <Route path="settings" element={
-              <div className="flex min-h-screen items-center justify-center">
-                <div className="text-center p-8">
-                  <h1 className="text-2xl font-bold mb-4">🚧 Coming Soon</h1>
-                  <p className="text-gray-600 mb-4">Halaman pengaturan admin sedang dalam pengembangan.</p>
+              <div className="flex min-h-[60vh] items-center justify-center">
+                <div className="text-center p-8 ba-headers-content-bg border border-neutral-200 rounded-xl shadow-sm">
+                  <h1 className="text-2xl font-black mb-4 uppercase tracking-tighter text-ba-shiroko-palette-dark-2">🚧 Coming Soon</h1>
+                  <p className="text-neutral-400 font-bold text-xs uppercase tracking-widest">Halaman pengaturan sedang dalam pengembangan.</p>
                 </div>
               </div>
             } />

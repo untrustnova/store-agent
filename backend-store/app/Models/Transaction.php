@@ -28,6 +28,10 @@ class Transaction extends Model
     ];
 
     protected $casts = [
+        'type' => \App\Enums\TransactionType::class,
+        'status' => \App\Enums\TransactionStatus::class,
+        'payment_status' => \App\Enums\PaymentStatus::class,
+        'payment_method' => \App\Enums\PaymentMethod::class,
         'amount' => 'decimal:2',
         'admin_fee' => 'decimal:2',
         'total_amount' => 'decimal:2',

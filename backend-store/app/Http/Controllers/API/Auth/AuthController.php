@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Http\Traits\ApiResponse;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,13 +13,10 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    use ApiResponse;
+
     public function login(Request $request): JsonResponse
     {
-        // $request->validate([
-        //     'email' => 'required|email',
-        //     'password' => 'required',
-        //     'device_name' => 'required',
-        // ]);
         $request->validate([
             'email' => 'required|email',
             'password' => 'required',
@@ -27,43 +25,34 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return $this->errorResponse('The provided credentials are incorrect.', 422, [
+                'email' => ['The provided credentials are incorrect.']
             ]);
         }
 
         if (!$user->is_active) {
-            throw ValidationException::withMessages([
-                'email' => ['This account has been deactivated.'],
-            ]);
+            return $this->errorResponse('This account has been deactivated.', 403);
         }
 
-        $token = $user->createToken($request->device_name ?? 'API Token ' . now())->plainTextToken;
+        $token = $user->createToken($request->device_name ?? 'API Token')->plainTextToken;
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Successfully logged in',
-            'data' => [
-                'token' => $token,
-                'user' => new UserResource($user),
-            ]
-        ]);
+        return $this->successResponse([
+            'token' => $token,
+            'user' => new UserResource($user),
+        ], 'Successfully logged in');
     }
 
-    public function me(Request $request): UserResource
+    public function me(Request $request): JsonResponse
     {
-        return new UserResource($request->user());
+        return $this->successResponse(new UserResource($request->user()));
     }
 
     public function logout(Request $request): JsonResponse
     {
         $request->user()->tokens()->delete();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Successfully logged out'
-        ]);
+        return $this->successResponse(null, 'Successfully logged out');
     }
 
     public function register(Request $request): JsonResponse
@@ -85,12 +74,8 @@ class AuthController extends Controller
             'role' => 'agent',
         ]);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'User registered successfully',
-            'data' => [
-                'user' => new UserResource($user),
-            ]
-        ], 201);
+        return $this->successResponse([
+            'user' => new UserResource($user),
+        ], 'User registered successfully', 201);
     }
 }

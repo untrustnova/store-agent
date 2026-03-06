@@ -2,17 +2,17 @@ import { useEffect, useState, useCallback } from "react"
 import { toast } from "sonner"
 import RequestAPIApp from "../lib/request"
 import { useAuthorization } from "../components/content/Authentication"
-import { ArrowRight, Gamepad2 } from "lucide-react"
+import { ArrowRight, Gamepad2, User, Globe, CheckCircle2 } from "lucide-react"
 import Input from "../components/meta/Input"
 import Button from "../components/meta/Button"
 import * as validate from "../lib/validate"
 import HandleingValidateError from "../lib/handle-validate"
+import HeadOperation from "../components/content/HeadOperation"
 
 const createGameValidate = new validate.Form("game")
 createGameValidate.append({
   user_id: validate.string("User ID").require(),
   server: validate.string("Server").require(),
-  product_id: validate.number("Produk Game").require()
 })
 
 export default function GameTransaction() {
@@ -24,13 +24,12 @@ export default function GameTransaction() {
   const [server, setServer] = useState("")
   const [messageErr, setMessageErr] = useState({})
   const [isLoading, setIsLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const auth = useAuthorization()
 
   const loadGameProducts = useCallback(async () => {
     try {
-      const response = await RequestAPIApp("/products/games", {
-        headers: auth.headers(),
-      })
+      const response = await RequestAPIApp("/products/games")
       if (response.data?.data) {
         setGames(response.data.data.items)
         setGameNames(response.data.data.games)
@@ -39,43 +38,47 @@ export default function GameTransaction() {
         }
       }
     } catch {
-      toast.error("Gagal memuat daftar produk game", {
-        description: "Silahkan coba lagi nanti"
-      })
+      toast.error("Gagal memuat daftar produk game")
     } finally {
       setIsLoading(false)
     }
-  }, [auth])
+  }, [])
 
   useEffect(() => {
-    loadGameProducts() // Run one
-  }, [])
+    loadGameProducts()
+    if (!window.snap) {
+      const script = document.createElement('script');
+      script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
+      script.setAttribute('data-client-key', 'SB-Mid-client-vP-y_m_O-5e_x-x_');
+      document.body.appendChild(script);
+    }
+  }, [loadGameProducts])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if(loading) return
     
-    if (!selectedGame || !userId || !server || !selectedProduct) {
+    if (!selectedGame || !selectedProduct) {
       toast.error("Harap lengkapi semua field yang diperlukan")
       return
     }
 
-    // Validate form
-    const data = { user_id: userId, server, product_id: selectedProduct.id }
-    const isValid = createGameValidate.validate(data)
+    const structureForm = { user_id: userId, server }
+    
+    const isValid = createGameValidate.validate(structureForm)
     if (isValid) {
       const parseErrorValid = HandleingValidateError(isValid)
       setMessageErr(parseErrorValid.context)
-      toast.error("Ada beberapa yang perlu diubah", {
-        description: parseErrorValid?.list[0]?.msg || "Unknowing"
-      })
+      toast.error("Input tidak valid")
       return
     }
+    
     setMessageErr({})
+    setLoading(true)
 
     try {
       const response = await RequestAPIApp("/transactions", {
         method: "POST",
-        headers: auth.headers(),
         data: {
           type: "game",
           amount: selectedProduct.price,
@@ -91,121 +94,116 @@ export default function GameTransaction() {
 
       if (response.data?.data?.snap_token) {
         window.snap.pay(response.data.data.snap_token, {
-          onSuccess: function() {
-            toast.success("Pembayaran berhasil!")
-            // Redirect to history or dashboard
-          },
-          onError: function() {
-            toast.error("Pembayaran gagal", {
-              description: "Silahkan coba lagi"
-            })
-          }
+          onSuccess: () => toast.success("Pembayaran sedang diproses!"),
+          onPending: () => toast.info("Menunggu pembayaran anda."),
+          onError: () => toast.error("Pembayaran gagal")
         })
       }
     } catch (err) {
-      toast.error("Gagal membuat transaksi", {
-        description: err.response?.data?.message || "Silahkan coba lagi nanti"
-      })
+      toast.error("Gagal membuat transaksi")
+    } finally {
+      setLoading(false)
     }
   }
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ba-shiroko-palette-medium" />
       </div>
     )
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Gamepad2 className="w-8 h-8" />
-          Game Top-up
-        </h1>
-        <p className="text-gray-600 mt-2">
-          Top up game favorit Anda dengan mudah dan cepat
-        </p>
+    <div className="w-full max-w-2xl mx-auto px-4 py-8">
+      <HeadOperation title="AZStore - Game Top-up" />
+      
+      <div className="w-full mb-6">
+        <div className="ba-headers-title-text flex items-center px-4 rounded-t-lg">
+          <Gamepad2 className="w-5 h-5 mr-2 text-ba-shiroko-palette-medium" />
+          <h1 className="font-bold text-ba-shiroko-palette-dark-2">Top Up Game</h1>
+        </div>
+        <div className="bg-white p-4 border-x border-b border-neutral-200 rounded-b-lg ba-headers-content-bg shadow-sm">
+          <p className="text-sm text-neutral-600">
+            Top up game favorit anda dengan harga termurah dan proses instan 24 jam.
+          </p>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Game Selection */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Pilih Game
-          </label>
-          <div className="grid grid-cols-2 gap-3">
+        <div className="bg-white p-5 rounded-lg border border-neutral-200 shadow-sm">
+          <p className="text-sm font-bold text-ba-shiroko-palette-dark-2 mb-4 uppercase tracking-tighter">1. Pilih Game</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {gameNames.map((gameName) => (
               <button
                 key={gameName}
                 type="button"
-                onClick={() => setSelectedGame(gameName)}
-                className={`p-3 border rounded-lg text-center transition-colors ${
+                onClick={() => {
+                  setSelectedGame(gameName)
+                  setSelectedProduct(null)
+                }}
+                className={`px-3 py-3 rounded-md text-xs font-black transition-all border-2 uppercase ${
                   selectedGame === gameName
-                    ? "border-blue-500 bg-blue-50 text-blue-700"
-                    : "border-gray-300 hover:border-gray-400"
+                    ? "border-ba-shiroko-palette-medium bg-ba-shiroko-palette-medium text-white shadow-md"
+                    : "border-neutral-50 bg-neutral-50 text-neutral-400 hover:border-ba-shiroko-palette-light"
                 }`}
               >
                 {gameName}
               </button>
             ))}
           </div>
-      </div>
+        </div>
 
-        {/* User ID and Server */}
-        <div className="grid grid-cols-2 gap-4">
-            <Input
-            label="User ID"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-            placeholder="Masukkan User ID"
-            error={messageErr?.user_id}
-          />
-
-          <Input
-            label="Server"
-              value={server}
-              onChange={(e) => setServer(e.target.value)}
-            placeholder="Global/Japan/Asia"
-            error={messageErr?.server}
-          />
-          </div>
-
-          {/* Product Selection */}
-        {selectedGame && games[selectedGame] && (
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Pilih Produk
+        <div className="bg-white p-5 rounded-lg border border-neutral-200 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-1 h-full bg-ba-shiroko-palette-medium"></div>
+          <p className="text-sm font-bold text-ba-shiroko-palette-dark-2 mb-4 uppercase tracking-tighter">2. Data Akun</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <label className="block w-full">
+              <p className="mb-1 text-[10px] font-black text-neutral-400">USER ID</p>
+              <Input
+                value={userId}
+                onChange={(e) => setUserId(e.target.value)}
+                icon={<User size={16} className="text-ba-shiroko-palette-medium" />}
+                placeholder="Masukkan ID"
+                error={!!messageErr?.user_id}
+              />
             </label>
+            <label className="block w-full">
+              <p className="mb-1 text-[10px] font-black text-neutral-400">SERVER</p>
+              <Input
+                value={server}
+                onChange={(e) => setServer(e.target.value)}
+                icon={<Globe size={16} className="text-ba-shiroko-palette-medium" />}
+                placeholder="Global/Asia/..."
+                error={!!messageErr?.server}
+              />
+            </label>
+          </div>
+        </div>
+
+        {selectedGame && games[selectedGame] && (
+          <div className="bg-white p-5 rounded-lg border border-neutral-200 shadow-sm ba-headers-content-bg">
+            <p className="text-sm font-bold text-ba-shiroko-palette-dark-2 mb-4 uppercase tracking-tighter">3. Pilih Nominal</p>
             <div className="grid grid-cols-2 gap-3">
               {games[selectedGame].items.map((product) => (
                 <div
                   key={product.id}
-                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                  className={`relative p-4 border-2 rounded-xl cursor-pointer transition-all flex flex-col justify-center items-center text-center ${
                     selectedProduct?.id === product.id
-                      ? "border-blue-500 bg-blue-50"
-                      : "hover:border-gray-400"
+                      ? "border-ba-shiroko-palette-medium bg-blue-50/50 ring-4 ring-ba-shiroko-palette-light/20"
+                      : "border-neutral-100 hover:border-ba-shiroko-palette-light bg-white"
                   }`}
                   onClick={() => setSelectedProduct(product)}
                 >
-                  <input
-                    type="radio"
-                    name="product_id"
-                    value={product.id}
-                    checked={selectedProduct?.id === product.id}
-                    className="hidden"
-                  />
-                  <div className="text-center">
-                    <p className="font-bold text-lg">{product.item_type}</p>
-                    <p className="text-sm text-gray-600">{product.amount}</p>
-                    <p className="text-lg font-semibold text-blue-600">
-                      Rp {product.price.toLocaleString()}
-                    </p>
-                    {product.description && (
-                      <p className="text-xs text-gray-500 mt-1">{product.description}</p>
-                    )}
-                  </div>
+                  {selectedProduct?.id === product.id && (
+                    <div className="absolute -top-2 -right-2 bg-ba-shiroko-palette-medium text-white rounded-full p-0.5 shadow-sm">
+                      <CheckCircle2 size={16} />
+                    </div>
+                  )}
+                  <p className="font-black text-ba-shiroko-palette-dark-3 uppercase text-xs">{product.item_type}</p>
+                  <p className="text-lg font-black text-ba-shiroko-palette-medium my-1">{product.amount}</p>
+                  <div className="w-full h-[1px] bg-neutral-100 my-2"></div>
+                  <p className="text-[10px] font-bold text-neutral-500">Rp {product.price.toLocaleString()}</p>
                 </div>
               ))}
             </div>
@@ -213,11 +211,17 @@ export default function GameTransaction() {
         )}
 
         {selectedProduct && (
-          <Button type="submit" className="w-full">
-            <span>Lanjutkan Pembayaran</span>
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </Button>
-      )}
+          <div className="pt-2">
+            <Button type="submit" className="w-full py-5 h-auto shadow-lg shadow-blue-200" disabled={loading}>
+              <div className="flex items-center justify-center font-black text-lg tracking-wide uppercase">
+                {loading ? "PROCESSING..." : <>
+                  <span>KONFIRMASI TOP UP</span>
+                  <ArrowRight className="w-6 h-6 ml-2" />
+                </>}
+              </div>
+            </Button>
+          </div>
+        )}
       </form>
     </div>
   )

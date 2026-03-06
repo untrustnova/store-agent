@@ -1,91 +1,110 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { toast } from "sonner"
 import { useAuthorization } from "../../components/content/Authentication"
 import RequestAPIApp from "../../lib/request"
 import HeadOperation from "../../components/content/HeadOperation"
-import { Clock, CheckCircle, XCircle, AlertCircle, DollarSign } from "lucide-react"
+import { Clock, CheckCircle2, XCircle, AlertCircle, DollarSign, History, RefreshCw, ChevronRight, Search } from "lucide-react"
+import Link from "../../components/meta/Link"
 
 export default function TransactionHistory() {
   const auth = useAuthorization()
   const [transactions, setTransactions] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(null) // ID of transaction being refreshed
   const [currentPage, setCurrentPage] = useState(1)
+  const [meta, setMeta] = useState({ current_page: 1, last_page: 1 })
 
-  useEffect(() => {
-    loadTransactions()
-  }, [currentPage])
-
-  async function loadTransactions() {
+  const loadTransactions = useCallback(async (page = currentPage) => {
     try {
       const response = await RequestAPIApp("/transactions/history", {
         headers: auth.headers(),
-        params: { page: currentPage }
+        params: { page }
       })
       
-      if (response.data?.data?.transactions) {
+      if (response.data?.status === 'success' && response.data?.data?.transactions) {
         setTransactions(response.data.data.transactions)
+        if (response.data.data.meta) {
+          setMeta(response.data.data.meta)
+        }
       }
     } catch {
-      toast.error("Failed to load transaction history", {
-        description: "Please try again later"
-      })
+      toast.error("Gagal memuat riwayat transaksi")
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [auth, currentPage])
 
-  function getStatusIcon(status, paymentStatus) {
-    if (paymentStatus === 'paid') {
-      return <CheckCircle size={20} className="text-green-500" />
-    } else if (paymentStatus === 'failed') {
-      return <XCircle size={20} className="text-red-500" />
-    } else if (paymentStatus === 'expired') {
-      return <AlertCircle size={20} className="text-yellow-500" />
-    } else {
-      return <Clock size={20} className="text-blue-500" />
+  useEffect(() => {
+    loadTransactions()
+  }, [loadTransactions, currentPage])
+
+  async function handleSyncStatus(id, referenceId) {
+    setIsRefreshing(id)
+    try {
+      const response = await RequestAPIApp(`/transactions/${id}/check-status`, {
+        method: "GET"
+      })
+      
+      if (response.data?.status === 'success') {
+        const midtransStatus = response.data.midtrans_status
+        toast.success(`Status updated: ${midtransStatus.toUpperCase()}`)
+        loadTransactions() // Reload the list
+      }
+    } catch (error) {
+      toast.error("Gagal sinkronisasi status")
+    } finally {
+      setIsRefreshing(null)
     }
   }
 
-  function getStatusColor(status, paymentStatus) {
-    if (paymentStatus === 'paid') {
-      return 'bg-green-100 text-green-800'
-    } else if (paymentStatus === 'failed') {
-      return 'bg-red-100 text-red-800'
-    } else if (paymentStatus === 'expired') {
-      return 'bg-yellow-100 text-yellow-800'
-    } else {
-      return 'bg-blue-100 text-blue-800'
-    }
-  }
-
-  function getStatusText(status, paymentStatus) {
-    if (paymentStatus === 'paid') {
-      return 'Completed'
-    } else if (paymentStatus === 'failed') {
-      return 'Failed'
-    } else if (paymentStatus === 'expired') {
-      return 'Expired'
-    } else {
-      return 'Pending'
+  function getStatusConfig(status, paymentStatus) {
+    const pStatus = typeof paymentStatus === 'string' ? paymentStatus : paymentStatus?.value || 'pending'
+    
+    switch (pStatus) {
+      case 'paid':
+        return { 
+          icon: <CheckCircle2 size={14} />, 
+          text: 'COMPLETED', 
+          color: 'bg-emerald-100 text-emerald-700 border-emerald-200' 
+        }
+      case 'failed':
+        return { 
+          icon: <XCircle size={14} />, 
+          text: 'FAILED', 
+          color: 'bg-rose-100 text-rose-700 border-rose-200' 
+        }
+      case 'expired':
+        return { 
+          icon: <AlertCircle size={14} />, 
+          text: 'EXPIRED', 
+          color: 'bg-neutral-100 text-neutral-500 border-neutral-200' 
+        }
+      default:
+        return { 
+          icon: <Clock size={14} />, 
+          text: 'PENDING', 
+          color: 'bg-amber-100 text-amber-700 border-amber-200' 
+        }
     }
   }
 
   function formatTransactionType(type) {
+    const t = typeof type === 'string' ? type : type?.value || 'other'
     const typeMap = {
-      'pulsa': 'Pulsa',
-      'kuota': 'Data Package',
-      'game': 'Game Credits',
-      'token_listrik': 'Electricity Token',
-      'ewallet': 'E-Wallet',
-      'bus': 'Bus Ticket'
+      'pulsa': 'PULSA',
+      'kuota': 'INTERNET DATA',
+      'game': 'GAME TOPUP',
+      'token_listrik': 'PLN TOKEN',
+      'ewallet': 'E-WALLET',
+      'bus': 'BUS TICKET'
     }
-    return typeMap[type] || type
+    return typeMap[t] || t.toUpperCase()
   }
 
-  if (isLoading) {
+  if (isLoading || auth.isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+      <div className="w-full flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ba-shiroko-palette-medium" />
       </div>
     )
   }
@@ -93,116 +112,100 @@ export default function TransactionHistory() {
   return (
     <>
       <HeadOperation title="AZStore - Transaction History" />
-      <div className="max-w-6xl mx-auto p-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Transaction History</h1>
-          <p className="text-gray-600 mt-2">View all your transaction history and payment status</p>
+      <div className="w-full max-w-4xl mx-auto p-4 py-8">
+        
+        {/* Header UI BA Style */}
+        <div className="w-full mb-8">
+          <div className="ba-headers-title-text flex items-center px-4 rounded-t-lg">
+            <History className="w-5 h-5 mr-2 text-ba-shiroko-palette-medium" />
+            <h1 className="font-black text-ba-shiroko-palette-dark-2 tracking-tighter uppercase">Mission Logs</h1>
+          </div>
+          <div className="bg-white p-4 border-x border-b border-neutral-200 rounded-b-lg ba-headers-content-bg shadow-sm flex items-center justify-between">
+            <p className="text-xs font-bold text-neutral-500 uppercase tracking-widest leading-relaxed">
+              Arsip seluruh riwayat transaksi mission yang telah anda lakukan.
+            </p>
+            <button onClick={() => loadTransactions()} className="p-2 hover:bg-neutral-100 rounded-full transition-colors text-ba-shiroko-palette-medium">
+              <RefreshCw size={16} />
+            </button>
+          </div>
         </div>
 
         {transactions.length === 0 ? (
-          <div className="text-center py-12">
-            <DollarSign size={64} className="mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No transactions yet</h3>
-            <p className="text-gray-600">Start making transactions to see them here</p>
+          <div className="text-center py-20 bg-white rounded-xl border border-dashed border-neutral-200 opacity-60">
+            <Search size={48} className="mx-auto text-neutral-300 mb-4" />
+            <h3 className="text-xs font-black text-neutral-400 uppercase tracking-[0.2em]">Belum Ada Data Transaksi</h3>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Transaction
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Type
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Amount
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {transactions.map((transaction) => (
-                    <tr key={transaction.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+          <div className="space-y-4">
+            {transactions.map((transaction) => {
+              const status = getStatusConfig(transaction.status, transaction.payment_status)
+              const isPending = (typeof transaction.payment_status === 'string' ? transaction.payment_status : transaction.payment_status?.value) === 'pending'
+              
+              return (
+                <div key={transaction.id} className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden group hover:border-ba-shiroko-palette-medium transition-all">
+                  <div className="flex flex-col sm:flex-row items-stretch">
+                    <div className="p-5 flex-1 ba-headers-content-bg">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-[10px] font-black text-ba-shiroko-palette-medium tracking-widest">{transaction.reference_id}</span>
+                        <span className="text-[9px] font-bold text-neutral-400 uppercase">{new Date(transaction.created_at).toLocaleString('id-ID')}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-lg bg-neutral-50 flex items-center justify-center text-ba-shiroko-palette-dark-2 border border-neutral-100 shadow-inner">
+                          {transaction.type === 'game' ? <RefreshCw size={20} /> : <DollarSign size={20} />}
+                        </div>
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {transaction.reference_id}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {transaction.payment_method}
-                          </div>
+                          <h3 className="font-black text-ba-shiroko-palette-dark-2 text-sm uppercase tracking-tight">{formatTransactionType(transaction.type)}</h3>
+                          <p className="text-[10px] font-bold text-neutral-400 uppercase mt-0.5">{transaction.payment_method?.toUpperCase() || 'MANUAL'}</p>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          {formatTransactionType(transaction.type)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          Rp {Number(transaction.amount).toLocaleString()}
-                        </div>
-                        {transaction.admin_fee > 0 && (
-                          <div className="text-xs text-gray-500">
-                            + Rp {Number(transaction.admin_fee).toLocaleString()} fee
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          {getStatusIcon(transaction.status, transaction.payment_status)}
-                          <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(transaction.status, transaction.payment_status)}`}>
-                            {getStatusText(transaction.status, transaction.payment_status)}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(transaction.created_at).toLocaleDateString('id-ID', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </div>
+                    </div>
+
+                    <div className="px-5 py-4 sm:w-48 bg-neutral-50/50 flex flex-col justify-center border-t sm:border-t-0 sm:border-l border-neutral-100">
+                      <p className="text-xs font-black text-ba-shiroko-palette-dark-3 mb-2 tracking-tight">Rp {Number(transaction.total_amount).toLocaleString()}</p>
+                      <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded border ${status.color} w-fit`}>
+                        {status.icon}
+                        <span className="text-[9px] font-black tracking-tighter">{status.text}</span>
+                      </div>
+                      
+                      {isPending && (
+                        <button 
+                          onClick={() => handleSyncStatus(transaction.id, transaction.reference_id)}
+                          disabled={isRefreshing === transaction.id}
+                          className="mt-3 flex items-center gap-1.5 text-[9px] font-black text-ba-shiroko-palette-medium uppercase tracking-tighter hover:underline disabled:opacity-50"
+                        >
+                          <RefreshCw size={10} className={isRefreshing === transaction.id ? 'animate-spin' : ''} /> 
+                          {isRefreshing === transaction.id ? 'SYNCING...' : 'SYNC STATUS'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )}
 
-        {/* Pagination */}
-        {transactions.length > 0 && (
-          <div className="mt-6 flex justify-center">
-            <nav className="flex items-center space-x-2">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
-              <span className="px-3 py-2 text-sm font-medium text-gray-700">
-                Page {currentPage}
-              </span>
-              <button
-                onClick={() => setCurrentPage(prev => prev + 1)}
-                disabled={transactions.length < 10} // Assuming 10 items per page
-                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-            </nav>
+        {/* BA Styled Pagination */}
+        {meta.last_page > 1 && (
+          <div className="mt-8 flex justify-center gap-2">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-white border border-neutral-200 rounded font-black text-[10px] text-neutral-400 uppercase tracking-widest hover:border-ba-shiroko-palette-medium transition-all disabled:opacity-30 shadow-sm"
+            >
+              PREV
+            </button>
+            <div className="flex items-center px-4 bg-ba-shiroko-palette-dark-2 rounded shadow-lg">
+              <span className="text-[10px] font-black text-ba-shiroko-palette-light tracking-widest">PAGE {currentPage} OF {meta.last_page}</span>
+            </div>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(meta.last_page, prev + 1))}
+              disabled={currentPage === meta.last_page}
+              className="px-4 py-2 bg-white border border-neutral-200 rounded font-black text-[10px] text-neutral-400 uppercase tracking-widest hover:border-ba-shiroko-palette-medium transition-all disabled:opacity-30 shadow-sm"
+            >
+              NEXT
+            </button>
           </div>
         )}
       </div>

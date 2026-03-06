@@ -2,85 +2,100 @@ import axios from "axios"
 import authOperation from "../components/content/_AuthOperation"
 import { toast } from "sonner"
 
-// Apply Auto-Update Authentication
 const applyUpdateUs = [
   "auth/me", "/auth/me"
 ]
+
 const baseURL = "http://127.0.0.1:8000/api"
-// const baseURL = "https://bd8001f04196.ngrok-free.app/api"
-// const baseURL = "https://918b741c9ad5.ngrok-free.app/api"
 
 async function RequestAPIApp(url, { useAuth = true, showErrorOnToast = true, ...options } = {}) {
   try {
     const basedAxios = axios.create({
-      baseURL: baseURL
-    })
-    const getToken = localStorage.getItem(authOperation.savetokenkey)
-    const axiosRequest = await basedAxios.request({
-      ...options,
+      baseURL: baseURL,
       headers: {
-        ...(options.headers),
-        Authorization: (!!useAuth && !!getToken && getToken?.length > 1 && typeof getToken === "string")?
-        `${authOperation.prefixToken} ${getToken}`:undefined
-      },
-      url: url
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
     })
-    if(applyUpdateUs.includes(url)) {
-      // Always Update
-      if(typeof axiosRequest.data?.data === "object") {
-        localStorage.setItem(authOperation.saveuserkey, JSON.stringify(axiosRequest.data.data))
+
+    const getToken = localStorage.getItem(authOperation.savetokenkey)
+    
+    const config = {
+      ...options,
+      url: url,
+      headers: {
+        ...options.headers,
       }
     }
+
+    if (useAuth && getToken) {
+      config.headers.Authorization = `${authOperation.prefixToken} ${getToken}`
+    }
+
+    const response = await basedAxios.request(config)
+
+    // Handle auto-update for /auth/me
+    if (applyUpdateUs.includes(url) || applyUpdateUs.includes(`/${url}`)) {
+      if (response.data?.status === "success" && response.data?.data) {
+        localStorage.setItem(authOperation.saveuserkey, JSON.stringify(response.data.data))
+      }
+    }
+
     return {
-      ...axiosRequest,
-      isJson: String(axiosRequest?.headers["content-type"]||"")?.match("application/json")
+      status: response.status,
+      data: response.data,
+      isError: false,
+      isJson: true
     }
-  } catch(e) {
-    const responses = e.response
-    if(responses) {
+  } catch (e) {
+    const response = e.response
+    
+    if (response) {
+      const errorMessage = response.data?.message || "Terjadi kesalahan pada server"
+      
+      // Global 401 Unauthorized handling
+      if (response.status === 401) {
+        localStorage.removeItem(authOperation.saveuserkey)
+        localStorage.removeItem(authOperation.savetokenkey)
+        
+        // Redirect if not already on login/register page
+        const currentPath = window.location.pathname
+        if (!currentPath.includes('/auth/login') && !currentPath.includes('/auth/register')) {
+          window.location.href = '/auth/login?expired=true'
+        }
+        
+        if (showErrorOnToast) {
+          toast.error("Sesi Berakhir", {
+            description: "Sesi anda telah berakhir, silahkan masuk kembali."
+          })
+        }
+      } else if (showErrorOnToast) {
+        toast.error("Kesalahan Server", {
+          description: errorMessage
+        })
+      }
+
       return {
+        status: response.status,
+        data: response.data,
         isError: true,
-        ...responses,
-        isJson: String(responses?.headers["content-type"]||"")?.match("application/json"),
-        message: responses.data?.message||String(responses.data).slice(0, 189)
+        message: errorMessage,
+        errors: response.data?.errors
       }
     }
-    if(showErrorOnToast) {
-      toast.error("Upss, kesalahan di sisi client!",{
-        description: "Kesalahan ini terjadi pada sisi client karena internet atau logika pada operasinya"
+
+    if (showErrorOnToast) {
+      toast.error("Kesalahan Koneksi", {
+        description: "Gagal terhubung ke server. Pastikan koneksi internet anda stabil."
       })
     }
+
     return {
       isError: true,
       isClient: true,
-      message: "Come fron client error, check your console on browser!"
+      message: "Gagal terhubung ke server"
     }
   }
 }
 
 export default RequestAPIApp
-
-// function request() {
-//   const authorizationToken = localStorage.getItem(authOperation.savetokenkey)
-//   return {
-//     get: async (pathURL, options = {}) => {
-//       return RequestAPIApp(baseURL.replace(/{path}/g, pathURL), { ...options, authToken: authorizationToken, method: "GET" })
-//     },
-//     post: async (pathURL, options = {}) => {
-//       return RequestAPIApp(baseURL.replace(/{path}/g, pathURL), { ...options, authToken: authorizationToken, method: "POST" })
-//     },
-//     patch: async (pathURL, options = {}) => {
-//       return RequestAPIApp(baseURL.replace(/{path}/g, pathURL), { ...options, authToken: authorizationToken, method: "PATCH" })
-//     },
-//     put: async (pathURL, options = {}) => {
-//       return RequestAPIApp(baseURL.replace(/{path}/g, pathURL), { ...options, authToken: authorizationToken, method: "PUT" })
-//     },
-//     delete: async (pathURL, options = {}) => {
-//       return RequestAPIApp(baseURL.replace(/{path}/g, pathURL), { ...options, authToken: authorizationToken, method: "DELETE" })
-//     },
-//   }
-// }
-
-// module.exports = {
-//   request: request
-// }

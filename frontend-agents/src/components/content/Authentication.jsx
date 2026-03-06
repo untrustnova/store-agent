@@ -1,161 +1,161 @@
-import { useContext, createContext, useState, useEffect } from "react"
+import { useContext, createContext, useState, useEffect, useCallback, useMemo } from "react"
 import authOperation from "./_AuthOperation"
 import RequestAPIApp from "../../lib/request"
 import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 
-const CreateAuthContext = createContext("auth")
+const CreateAuthContext = createContext(null)
 
 function ParseJsonIfCanParser(jsonstr) {
   try {
-    return JSON.parse(jsonstr)
+    const parsed = JSON.parse(jsonstr)
+    return parsed && typeof parsed === 'object' ? parsed : null
   } catch {
-    return String(jsonstr)
+    return null
   }
 }
 
 export default function AuthenticationContext({ children }) {
   const navigate = useNavigate()
-  const [authisLogin, setauthisLogin] = useState(false)
+  const [authState, setAuthState] = useState({
+    user: ParseJsonIfCanParser(localStorage.getItem(authOperation.saveuserkey)),
+    token: localStorage.getItem(authOperation.savetokenkey),
+    isLoading: true,
+    isLogin: false
+  })
  
-  function GetDeviceID() {
+  const GetDeviceID = useCallback(() => {
     const storageTy = localStorage.getItem("use-id")
+    if(storageTy) return storageTy
+    
     const cryptoKey = crypto.randomUUID()
-    const generate = `${window?.navigator?.userAgentData?.platform||"Unknowing"} - ${cryptoKey}`
-    if(storageTy) {
-      return storageTy
-    }
+    const generate = `${window?.navigator?.userAgent || "Unknowing"} - ${cryptoKey}`
     localStorage.setItem("use-id", generate)
     return generate
-  }
-  function GetAuth() {
-    const getUser = localStorage.getItem(authOperation.saveuserkey)||"{}"
-    return {
-      user: ParseJsonIfCanParser(getUser),
-      token: localStorage.getItem(authOperation.savetokenkey)||null
-    }
-  }
-  function SetAuth({ user, token } = {}) {
-    console.log("SetAuth Context:", { user, token })
-    localStorage.setItem(authOperation.saveuserkey, JSON.stringify(user))
-    localStorage.setItem(authOperation.savetokenkey, String(token).trim())
-  }
-  async function RemoveAuth({ useRedirect = false } = {}) {
-    const currentAuth = GetAuth()
+  }, [])
+
+  const SetAuth = useCallback((token, user) => {
+    if (user) localStorage.setItem(authOperation.saveuserkey, JSON.stringify(user))
+    if (token) localStorage.setItem(authOperation.savetokenkey, String(token).trim())
     
-    // If no token exists, just clear local storage
-    if (!currentAuth.token) {
-      localStorage.removeItem(authOperation.saveuserkey)
-      localStorage.removeItem(authOperation.savetokenkey)
-      if (useRedirect) {
-        navigate("/") // Back To Home
+    setAuthState(prev => ({
+      ...prev,
+      user: user || prev.user,
+      token: token || prev.token,
+      isLogin: !!(token || prev.token) && !!(user || prev.user),
+      isLoading: false
+    }))
+  }, [])
+
+  const RemoveAuth = useCallback(async ({ useRedirect = false } = {}) => {
+    const token = localStorage.getItem(authOperation.savetokenkey)
+    
+    if (token) {
+      try {
+        await RequestAPIApp("/auth/logout", {
+          method: "POST",
+          showErrorOnToast: false,
+        })
+      } catch (e) {
+        console.error("Logout request failed", e)
       }
-      return
+    }
+    
+    localStorage.removeItem(authOperation.saveuserkey)
+    localStorage.removeItem(authOperation.savetokenkey)
+    
+    setAuthState({
+      user: null,
+      token: null,
+      isLogin: false,
+      isLoading: false
+    })
+    
+    if (useRedirect) {
+      navigate("/auth/login")
+      toast.info("Anda telah keluar.")
+    }
+  }, [navigate])
+
+  const validateToken = useCallback(async () => {
+    const token = localStorage.getItem(authOperation.savetokenkey)
+    if (!token) {
+      setAuthState(prev => ({ ...prev, isLoading: false, isLogin: false }))
+      return false
     }
 
-    try {
-      await RequestAPIApp("/auth/logout", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${currentAuth.token}`,
-          "accept": "application/json, text/txt"
-        },
-        showErrorOnToast: false,
+    const response = await RequestAPIApp("/auth/me", {
+      method: "GET",
+      showErrorOnToast: false,
+    })
+    
+    if (!response.isError && response.data?.status === "success") {
+      const user = response.data.data
+      localStorage.setItem(authOperation.saveuserkey, JSON.stringify(user))
+      setAuthState({
+        user,
+        token,
+        isLogin: true,
+        isLoading: false
       })
-      
-      // Success or any response, clear local storage
-      localStorage.removeItem(authOperation.saveuserkey)
-      localStorage.removeItem(authOperation.savetokenkey)
-      
-      if (useRedirect) {
-        navigate("/") // Back To Home
+      return true
+    } else {
+      if (response.status === 401) {
+        localStorage.removeItem(authOperation.saveuserkey)
+        localStorage.removeItem(authOperation.savetokenkey)
+        setAuthState({
+          user: null,
+          token: null,
+          isLogin: false,
+          isLoading: false
+        })
+      } else {
+        setAuthState(prev => ({ 
+          ...prev, 
+          isLogin: !!prev.token && !!prev.user,
+          isLoading: false 
+        }))
       }
-    } catch {
-      // Even if logout fails, clear local storage to prevent stuck state
-      localStorage.removeItem(authOperation.saveuserkey)
-      localStorage.removeItem(authOperation.savetokenkey)
-      
-      if (useRedirect) {
-        navigate("/") // Back To Home
-      }
-    }
-  }
-
-  useEffect(() => {
-    const getauth = GetAuth()
-    if(getauth.token && getauth.user) {
-      // Validate token by calling /auth/me
-      validateToken(getauth.token)
+      return false
     }
   }, [])
 
-  async function validateToken(token) {
-    try {
-      const response = await RequestAPIApp("/auth/me", {
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "accept": "application/json, text/txt"
-        },
-        showErrorOnToast: false,
-      })
-      
-      if (response.data?.data) {
-        // Token is valid, update user data and set login state
-        SetAuth({ token: String(token||"").trim(), user: response.data.data })
-        setauthisLogin(true)
-      } else {
-        // Token is invalid, clear auth
-        // RemoveAuth()
-      }
-    } catch {
-      // Token validation failed, clear auth
-      // RemoveAuth()
-    }
-  }
-  return <CreateAuthContext.Provider value={{
-    GetAuth,
+  useEffect(() => {
+    validateToken()
+  }, [validateToken])
+
+  const contextValue = useMemo(() => ({
+    ...authState,
     SetAuth,
     RemoveAuth,
     GetDeviceID,
-    validateToken,
-    authisLogin
-  }}>
+    validateToken
+  }), [authState, SetAuth, RemoveAuth, GetDeviceID, validateToken])
+
+  return <CreateAuthContext.Provider value={contextValue}>
     {children}
   </CreateAuthContext.Provider>
 }
 
 export function useAuthorization() {
-  const authuse = useContext(CreateAuthContext)
-  return {
-    isLogin: authuse.authisLogin,
-    GetDeviceID: () => {
-      return authuse.GetDeviceID()
-    },
-    getToken: () => {
-      return String(authuse.GetAuth()?.token||"")
-    },
-    getUser: () => {
-      return authuse.GetAuth().user
-    },
-    headers: () => {
-      const tokenUs = authuse.GetAuth()?.token
-      const prefix = "Bearer"
-      return {
-        "Authorization": tokenUs ? `${prefix} ${tokenUs}` : "",
-        "accept": "application/json, text/txt"
-      }
-    },
-    setAuth: (token, user) => {
-      console.log("SetAuth Auth:", { user: user, token: token })
-      return authuse.SetAuth({ token: token, user: user })
-    },
-    RemoveAuth: () => {
-      return authuse.RemoveAuth()
-    },
-    refreshAuth: () => {
-      const getauth = authuse.GetAuth()
-      if (getauth.token) {
-        return authuse.validateToken(getauth.token)
-      }
-    }
+  const context = useContext(CreateAuthContext)
+  if (!context) {
+    throw new Error("useAuthorization must be used within an AuthenticationContext")
   }
+  
+  // Memoize the return value to prevent infinite loops in consumers
+  return useMemo(() => ({
+    isLogin: context.isLogin,
+    isLoading: context.isLoading,
+    GetDeviceID: context.GetDeviceID,
+    getToken: () => context.token,
+    getUser: () => context.user,
+    headers: () => ({
+      "Authorization": context.token ? `${authOperation.prefixToken} ${context.token}` : "",
+      "Accept": "application/json"
+    }),
+    setAuth: (token, user) => context.SetAuth(token, user),
+    RemoveAuth: (options) => context.RemoveAuth(options),
+    refreshAuth: () => context.validateToken()
+  }), [context])
 }

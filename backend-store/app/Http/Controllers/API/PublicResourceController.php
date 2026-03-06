@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Traits\ApiResponse;
 use App\Models\Pulsa;
 use App\Models\Kuota;
 use App\Models\Game;
@@ -13,21 +14,18 @@ use Illuminate\Support\Facades\Cache;
 
 class PublicResourceController extends Controller
 {
-    // Pulsa
+    use ApiResponse;
+
     public function listPulsa(Request $request): JsonResponse
     {
         try {
             $cacheKey = 'pulsa_list_' . md5(json_encode($request->all()));
 
-            return Cache::remember($cacheKey, 3600, function () use ($request) {
+            $data = Cache::remember($cacheKey, 3600, function () use ($request) {
                 $query = Pulsa::where('is_active', true);
 
                 if ($provider = $request->input('provider')) {
                     $query->where('provider', $provider);
-                }
-
-                if ($nominal = $request->input('nominal')) {
-                    $query->where('nominal', $nominal);
                 }
 
                 $pulsa = $query->orderBy('provider')
@@ -35,43 +33,37 @@ class PublicResourceController extends Controller
                               ->get()
                               ->groupBy('provider');
 
-                // Transform the data for frontend
                 $formattedPulsa = $pulsa->map(function ($items) {
                     return [
                         'items' => $items->map(function ($item) {
                             return [
                                 'id' => $item->id,
                                 'nominal' => $item->nominal,
-                                'price' => $item->price,
+                                'price' => (float) $item->price,
                                 'description' => $item->description,
                             ];
                         })
                     ];
                 });
 
-                return response()->json([
-                    'status' => 'success',
-                    'data' => [
-                        'providers' => $pulsa->keys(),
-                        'pulsa' => $formattedPulsa
-                    ]
-                ]);
+                return [
+                    'providers' => $pulsa->keys(),
+                    'pulsa' => $formattedPulsa
+                ];
             });
+
+            return $this->successResponse($data, 'Pulsa list retrieved successfully');
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to retrieve pulsa list'
-            ], 500);
+            return $this->errorResponse('Failed to retrieve pulsa list', 500);
         }
     }
 
-    // Kuota
     public function listKuota(Request $request): JsonResponse
     {
         try {
             $cacheKey = 'kuota_list_' . md5(json_encode($request->all()));
 
-            return Cache::remember($cacheKey, 3600, function () use ($request) {
+            $data = Cache::remember($cacheKey, 3600, function () use ($request) {
                 $query = Kuota::where('is_active', true);
 
                 if ($provider = $request->input('provider')) {
@@ -83,7 +75,6 @@ class PublicResourceController extends Controller
                               ->get()
                               ->groupBy('provider');
 
-                // Transform the data for frontend
                 $formattedKuota = $kuota->map(function ($items) {
                     return [
                         'items' => $items->map(function ($item) {
@@ -92,36 +83,31 @@ class PublicResourceController extends Controller
                                 'package_name' => $item->package_name,
                                 'data_amount' => $item->data_amount,
                                 'validity_period' => $item->validity_period,
-                                'price' => $item->price,
+                                'price' => (float) $item->price,
                                 'description' => $item->description,
                             ];
                         })
                     ];
                 });
 
-                return response()->json([
-                    'status' => 'success',
-                    'data' => [
-                        'providers' => $kuota->keys(),
-                        'kuota' => $formattedKuota
-                    ]
-                ]);
+                return [
+                    'providers' => $kuota->keys(),
+                    'kuota' => $formattedKuota
+                ];
             });
+
+            return $this->successResponse($data, 'Kuota list retrieved successfully');
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to retrieve kuota list'
-            ], 500);
+            return $this->errorResponse('Failed to retrieve kuota list', 500);
         }
     }
 
-    // Games
     public function listGames(Request $request): JsonResponse
     {
         try {
             $cacheKey = 'games_list_' . md5(json_encode($request->all()));
 
-            return Cache::remember($cacheKey, 3600, function () use ($request) {
+            $data = Cache::remember($cacheKey, 3600, function () use ($request) {
                 $query = Game::where('is_active', true);
 
                 if ($gameName = $request->input('game_name')) {
@@ -133,7 +119,6 @@ class PublicResourceController extends Controller
                              ->get()
                              ->groupBy('game_name');
 
-                // Transform the data for frontend
                 $formattedGames = $games->map(function ($items) {
                     return [
                         'items' => $items->map(function ($item) {
@@ -141,36 +126,31 @@ class PublicResourceController extends Controller
                                 'id' => $item->id,
                                 'item_type' => $item->item_type,
                                 'amount' => $item->amount,
-                                'price' => $item->price,
+                                'price' => (float) $item->price,
                                 'description' => $item->description,
                             ];
                         })
                     ];
                 });
 
-                return response()->json([
-                    'status' => 'success',
-                    'data' => [
-                        'games' => $games->keys(),
-                        'items' => $formattedGames
-                    ]
-                ]);
+                return [
+                    'games' => $games->keys(),
+                    'items' => $formattedGames
+                ];
             });
+
+            return $this->successResponse($data, 'Games list retrieved successfully');
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to retrieve games list'
-            ], 500);
+            return $this->errorResponse('Failed to retrieve games list', 500);
         }
     }
 
-    // Token Listrik
     public function listTokenListrik(Request $request): JsonResponse
     {
         try {
             $cacheKey = 'token_listrik_list_' . md5(json_encode($request->all()));
 
-            return Cache::remember($cacheKey, 3600, function () use ($request) {
+            $data = Cache::remember($cacheKey, 3600, function () use ($request) {
                 $tokens = TokenListrik::where('is_active', true)
                     ->when($request->has('min_nominal'), function ($query) use ($request) {
                         return $query->where('nominal', '>=', $request->min_nominal);
@@ -181,32 +161,24 @@ class PublicResourceController extends Controller
                     ->orderBy('nominal')
                     ->get();
 
-                // Transform the data for frontend
-                $formattedTokens = $tokens->map(function ($token) {
-                    return [
-                        'id' => $token->id,
-                        'nominal' => $token->nominal,
-                        'price' => $token->price,
-                        'description' => $token->description,
-                    ];
-                });
-
-                return response()->json([
-                    'status' => 'success',
-                    'data' => [
-                        'tokens' => $formattedTokens
-                    ]
-                ]);
+                return [
+                    'tokens' => $tokens->map(function ($token) {
+                        return [
+                            'id' => $token->id,
+                            'nominal' => $token->nominal,
+                            'price' => (float) $token->price,
+                            'description' => $token->description,
+                        ];
+                    })
+                ];
             });
+
+            return $this->successResponse($data, 'Token listrik list retrieved successfully');
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to retrieve token listrik list'
-            ], 500);
+            return $this->errorResponse('Failed to retrieve token listrik list', 500);
         }
     }
 
-    // Get Product Details
     public function getProductDetails(string $type, $id): JsonResponse
     {
         try {
@@ -215,22 +187,20 @@ class PublicResourceController extends Controller
                 'kuota' => Kuota::class,
                 'game' => Game::class,
                 'token-listrik' => TokenListrik::class,
-                default => throw new \InvalidArgumentException('Invalid product type')
+                default => null
             };
+
+            if (!$model) {
+                return $this->errorResponse('Invalid product type', 400);
+            }
 
             $product = $model::where('id', $id)
                             ->where('is_active', true)
                             ->firstOrFail();
 
-            return response()->json([
-                'status' => 'success',
-                'data' => $product
-            ]);
+            return $this->successResponse($product);
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Product not found'
-            ], 404);
+            return $this->errorResponse('Product not found', 404);
         }
     }
 }

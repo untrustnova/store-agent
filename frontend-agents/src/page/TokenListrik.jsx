@@ -2,16 +2,16 @@ import { useEffect, useState, useCallback } from "react"
 import { toast } from "sonner"
 import RequestAPIApp from "../lib/request"
 import { useAuthorization } from "../components/content/Authentication"
-import { ArrowRight, Zap } from "lucide-react"
+import { ArrowRight, Zap, CheckCircle2, UserCircle2 } from "lucide-react"
 import Input from "../components/meta/Input"
 import Button from "../components/meta/Button"
 import * as validate from "../lib/validate"
 import HandleingValidateError from "../lib/handle-validate"
+import HeadOperation from "../components/content/HeadOperation"
 
 const createTokenValidate = new validate.Form("token")
 createTokenValidate.append({
   meter_number: validate.string("Nomor Meter").require().min(11).max(11),
-  product_id: validate.number("Produk Token").require()
 })
 
 export default function TokenListrikPage() {
@@ -20,86 +20,89 @@ export default function TokenListrikPage() {
   const [customerInfo, setCustomerInfo] = useState(null)
   const [messageErr, setMessageErr] = useState({})
   const [isLoading, setIsLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [checking, setChecking] = useState(false)
   const auth = useAuthorization()
 
   const loadTokenProducts = useCallback(async () => {
     try {
-      const response = await RequestAPIApp("/products/token-listrik", {
-        headers: auth.headers(),
-      })
-      if (response.data?.data?.tokens) {
+      const response = await RequestAPIApp("/products/token-listrik")
+      if (response.data?.status === "success" && response.data?.data?.tokens) {
         setTokenProducts(response.data.data.tokens)
       }
     } catch {
-      toast.error("Gagal memuat daftar produk token", {
-        description: "Silahkan coba lagi nanti"
-      })
+      toast.error("Gagal memuat produk token")
     } finally {
       setIsLoading(false)
     }
-  }, [auth])
+  }, [])
 
   useEffect(() => {
     loadTokenProducts()
+    if (!window.snap) {
+      const script = document.createElement('script');
+      script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
+      script.setAttribute('data-client-key', 'SB-Mid-client-vP-y_m_O-5e_x-x_');
+      document.body.appendChild(script);
+    }
   }, [loadTokenProducts])
 
   async function handleCheckMeter(e) {
-    e.preventDefault()
-    const meterNumber = e.target.meter_number.value
+    const meterNumber = e.target.value
+    if (meterNumber.length !== 11) return
 
-    if (meterNumber.length !== 11) {
-      setMessageErr({ meter_number: "Nomor meter harus 11 digit" })
-      return
-    }
-
+    setChecking(true)
     try {
       const response = await RequestAPIApp("/services/validate-token-meter", {
         method: "POST",
-        headers: auth.headers(),
         data: { meter_number: meterNumber }
       })
 
-      if (response.data?.valid) {
+      if (response.data?.status === "success" || response.data?.valid) {
         setCustomerInfo({
-          name: response.data.customer_name,
-          address: response.data.customer_address,
-          tariff: response.data.tariff
+          name: response.data.customer_name || response.data.data?.customer_name,
+          address: response.data.customer_address || response.data.data?.customer_address,
+          tariff: response.data.tariff || response.data.data?.tariff
         })
         setMessageErr({})
+        toast.success("ID Pelanggan Valid")
       }
     } catch (error) {
-      toast.error("Gagal mengecek nomor meter", {
-        description: error.response?.data?.message || "Silahkan coba lagi nanti"
-      })
+      toast.error("ID Pelanggan tidak ditemukan")
+      setCustomerInfo(null)
+    } finally {
+      setChecking(false)
     }
   }
 
   async function handleSubmit(e) {
     e.preventDefault()
+    if (loading) return
+    
     const form = new FormData(e.target)
     const data = Object.fromEntries(form)
     
     if (!selectedProduct) {
-      toast.error("Pilih produk token terlebih dahulu")
+      toast.error("Pilih nominal token terlebih dahulu")
       return
     }
 
-    // Validate form
-    const isValid = createTokenValidate.validate(data)
+    const structureForm = { meter_number: data.meter_number }
+    const isValid = createTokenValidate.validate(structureForm)
+    
     if (isValid) {
       const parseErrorValid = HandleingValidateError(isValid)
       setMessageErr(parseErrorValid.context)
-      toast.error("Ada beberapa yang perlu diubah", {
-        description: `Ada ${Object.keys(parseErrorValid.context).length} field yang perlu diperbaiki`
-      })
+      toast.error("Nomor meter tidak valid")
       return
     }
+    
     setMessageErr({})
+    setLoading(true)
 
     try {
       const response = await RequestAPIApp("/transactions", {
         method: "POST",
-        headers: auth.headers(),
         data: {
           type: "token_listrik",
           amount: selectedProduct.price,
@@ -111,101 +114,96 @@ export default function TokenListrikPage() {
         }
       })
 
-      if (response.data?.data?.snap_token) {
+      if (!response.isError && response.data?.data?.snap_token) {
         window.snap.pay(response.data.data.snap_token, {
-          onSuccess: function() {
-            toast.success("Pembayaran berhasil!")
-            // Redirect to history or dashboard
-          },
-          onError: function() {
-            toast.error("Pembayaran gagal", {
-              description: "Silahkan coba lagi"
-            })
-          }
+          onSuccess: () => toast.success("Pembayaran sedang diproses!"),
+          onPending: () => toast.info("Menunggu pembayaran anda."),
+          onError: () => toast.error("Pembayaran gagal")
         })
       }
     } catch (error) {
-      toast.error("Gagal membuat transaksi", {
-        description: error.response?.data?.message || "Silahkan coba lagi nanti"
-      })
+      toast.error("Gagal membuat transaksi")
+    } finally {
+      setLoading(false)
     }
   }
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ba-shiroko-palette-medium" />
       </div>
     )
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Zap className="w-8 h-8" />
-          Token Listrik
-        </h1>
-        <p className="text-gray-600 mt-2">
-          Beli token listrik PLN dengan mudah dan cepat
-        </p>
+    <div className="w-full max-w-2xl mx-auto px-4 py-8">
+      <HeadOperation title="AZStore - Token Listrik" />
+      
+      <div className="w-full mb-6">
+        <div className="ba-headers-title-text flex items-center px-4 rounded-t-lg">
+          <Zap className="w-5 h-5 mr-2 text-ba-shiroko-palette-medium" />
+          <h1 className="font-bold text-ba-shiroko-palette-dark-2">Token Listrik PLN</h1>
+        </div>
+        <div className="bg-white p-4 border-x border-b border-neutral-200 rounded-b-lg ba-headers-content-bg shadow-sm">
+          <p className="text-sm text-neutral-600">
+            Beli token listrik prabayar dengan proses otomatis dan aman.
+          </p>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-4">
-          <Input
-            label="Nomor Meter/ID Pelanggan"
-            name="meter_number"
-            type="text"
-            placeholder="12345678901"
-            maxLength={11}
-            error={messageErr?.meter_number}
-            onBlur={handleCheckMeter}
-          />
+        <div className="bg-white p-5 rounded-lg border border-neutral-200 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-1 h-full bg-ba-shiroko-palette-medium"></div>
+          <label className="block w-full">
+            <p className={`mb-2 text-sm font-bold ${messageErr?.meter_number ? 'text-red-500' : 'text-ba-shiroko-palette-dark-2'}`}>
+              NOMOR METER / ID PELANGGAN {messageErr?.meter_number && <span className="text-xs font-normal">({messageErr.meter_number})</span>}
+            </p>
+            <Input
+              name="meter_number"
+              type="text"
+              icon={<Zap size={18} className="text-ba-shiroko-palette-medium" />}
+              placeholder="Masukkan 11 digit nomor meter"
+              maxLength={11}
+              onBlur={handleCheckMeter}
+              error={!!messageErr?.meter_number}
+            />
+            {checking && <p className="text-[10px] text-ba-shiroko-palette-medium mt-1 animate-pulse font-bold uppercase">Mengecek ID Pelanggan...</p>}
+          </label>
 
           {customerInfo && (
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <h3 className="font-medium mb-2">Informasi Pelanggan:</h3>
-              <p>Nama: {customerInfo.name}</p>
-              <p>Alamat: {customerInfo.address}</p>
-              <p>Tarif/Daya: {customerInfo.tariff}</p>
+            <div className="mt-4 p-4 bg-ba-shiroko-palette-white rounded-lg border border-ba-shiroko-palette-light/30 flex items-start gap-3">
+              <UserCircle2 className="w-5 h-5 text-ba-shiroko-palette-medium mt-0.5" />
+              <div>
+                <p className="text-xs font-black text-ba-shiroko-palette-dark-3 uppercase">{customerInfo.name}</p>
+                <p className="text-[10px] text-neutral-500 mt-0.5 uppercase">{customerInfo.tariff} • {customerInfo.address}</p>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Product Selection */}
         {customerInfo && (
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Pilih Nominal Token
-            </label>
-            <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white p-5 rounded-lg border border-neutral-200 shadow-sm ba-headers-content-bg animate-in fade-in slide-in-from-top-2">
+            <p className="text-sm font-bold text-ba-shiroko-palette-dark-2 mb-4 uppercase tracking-tighter">Pilih Nominal Token</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {tokenProducts.map((token) => (
                 <div
                   key={token.id}
-                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                  className={`relative p-4 border-2 rounded-xl cursor-pointer transition-all flex flex-col items-center justify-center text-center ${
                     selectedProduct?.id === token.id
-                      ? "border-blue-500 bg-blue-50"
-                      : "hover:border-gray-400"
+                      ? "border-ba-shiroko-palette-medium bg-blue-50/50 ring-4 ring-ba-shiroko-palette-light/20"
+                      : "border-neutral-100 hover:border-ba-shiroko-palette-light bg-white"
                   }`}
                   onClick={() => setSelectedProduct(token)}
                 >
-                  <input
-                    type="radio"
-                    name="product_id"
-                    value={token.id}
-                    checked={selectedProduct?.id === token.id}
-                    className="hidden"
-                  />
-                  <div className="text-center">
-                    <p className="font-bold text-lg">Rp {token.nominal.toLocaleString()}</p>
-                    <p className="text-lg font-semibold text-blue-600">
-                      Rp {token.price.toLocaleString()}
-                    </p>
-                    {token.description && (
-                      <p className="text-xs text-gray-500 mt-1">{token.description}</p>
-                    )}
-                  </div>
+                  {selectedProduct?.id === token.id && (
+                    <div className="absolute -top-2 -right-2 bg-ba-shiroko-palette-medium text-white rounded-full p-0.5 shadow-sm">
+                      <CheckCircle2 size={16} />
+                    </div>
+                  )}
+                  <p className="font-black text-ba-shiroko-palette-dark-3 text-lg uppercase">Rp {token.nominal.toLocaleString()}</p>
+                  <div className="w-full h-[1px] bg-neutral-100 my-2"></div>
+                  <p className="text-[10px] font-bold text-ba-shiroko-palette-medium">Bayar: Rp {token.price.toLocaleString()}</p>
                 </div>
               ))}
             </div>
@@ -213,10 +211,16 @@ export default function TokenListrikPage() {
         )}
 
         {selectedProduct && (
-          <Button type="submit" className="w-full">
-            <span>Lanjutkan Pembayaran</span>
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </Button>
+          <div className="pt-2">
+            <Button type="submit" className="w-full py-5 h-auto shadow-lg shadow-blue-200" disabled={loading}>
+              <div className="flex items-center justify-center font-black text-lg tracking-wide uppercase">
+                {loading ? "PROCESSING..." : <>
+                  <span>BELI TOKEN SEKARANG</span>
+                  <ArrowRight className="w-6 h-6 ml-2" />
+                </>}
+              </div>
+            </Button>
+          </div>
         )}
       </form>
     </div>
